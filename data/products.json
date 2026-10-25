@@ -36,7 +36,9 @@
   "image": "https://m.media-amazon.com/images/W/BW_MEDIAX_AVIF_MEASUREMENT_1306696-T3/images/I/71Bz+4tz1pL._AC_SL1500_.jpg",
   "url": "https://www.amazon.com/dp/B08CMS8P67?tag=beautynest202-20",
   "store": "Amazon",
-  "bestseller": false
+  "bestseller": false,
+  "price": "$19.99",
+  "rating": 4.5
  },
  {
   "id": "medicube-pdrn-pink-peptide-serum-with-salmon-dna",
@@ -54,7 +56,10 @@
   "image": "https://m.media-amazon.com/images/W/BW_MEDIAX_AVIF_MEASUREMENT_1306696-T3/images/I/71GAXRVpezL._SL1500_.jpg",
   "url": "https://www.amazon.com/dp/B0DBF65JYY?tag=beautynest202-20",
   "store": "Amazon",
-  "bestseller": true
+  "bestseller": true,
+  "price": "$28.90",
+  "rating": 4.7,
+  "addedDate": "2026-09-14"
  },
  {
   "id": "haruharu-wonder-black-rice-moisture-airyfit-dail",
@@ -940,7 +945,10 @@
   "image": "https://m.media-amazon.com/images/I/416kUGx2rQL._AC_SL1024_.jpg",
   "url": "https://www.amazon.co.uk/dp/B00PBX3L7K?tag=beautynestkor-21",
   "store": "Amazon UK",
-  "bestseller": false
+  "bestseller": false,
+  "price": "£22.99",
+  "rating": 4.8,
+  "addedDate": "2026-08-02"
  },
  {
   "id": "medicube-collagen-night-wrapping-mask-overnight-",

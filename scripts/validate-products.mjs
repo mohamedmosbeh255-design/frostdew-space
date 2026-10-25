@@ -40,7 +40,10 @@ const REQUIRED_STRING_FIELDS = [
   "store",
 ]
 
-const REMOVED_FIELDS = ["rating", "reviews", "size"]
+const REMOVED_FIELDS = ["reviews", "size"]
+
+const PRICE_PATTERN = /^[$£€¥₩₹]\s?\d{1,3}(?:,\d{3})*(?:\.\d{1,2})?$/
+const ADDED_DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/
 
 const errors = []
 const warnings = []
@@ -153,6 +156,7 @@ const ids = new Map()
 const urls = new Map()
 const storeCounts = new Map()
 const categoryCounts = new Map()
+const optionalCounts = { price: 0, rating: 0, addedDate: 0 }
 
 for (const [index, product] of products.entries()) {
   if (!product || typeof product !== "object" || Array.isArray(product)) {
@@ -174,6 +178,46 @@ for (const [index, product] of products.entries()) {
 
   if (typeof product.bestseller !== "boolean") {
     fail(index, product, `"bestseller" must be a boolean`)
+  }
+
+  if (Object.hasOwn(product, "price")) {
+    if (typeof product.price !== "string" || product.price.trim() === "") {
+      fail(index, product, `"price" must be a non-empty string when present`)
+    } else if (!PRICE_PATTERN.test(product.price.trim())) {
+      fail(
+        index,
+        product,
+        `"price" must be a currency symbol plus an amount (for example "$24.99" or "£19.99")`,
+      )
+    } else {
+      optionalCounts.price += 1
+    }
+  }
+
+  if (Object.hasOwn(product, "rating")) {
+    if (typeof product.rating !== "number" || !Number.isFinite(product.rating)) {
+      fail(index, product, `"rating" must be a number when present`)
+    } else if (product.rating < 1 || product.rating > 5) {
+      fail(index, product, `"rating" must be between 1 and 5 (found ${product.rating})`)
+    } else if (!/^\d(?:\.\d{1,2})?$/.test(String(product.rating))) {
+      fail(index, product, `"rating" must have at most two decimal places`)
+    } else {
+      optionalCounts.rating += 1
+    }
+  }
+
+  if (Object.hasOwn(product, "addedDate")) {
+    const value = typeof product.addedDate === "string" ? product.addedDate.trim() : null
+    if (!value || !ADDED_DATE_PATTERN.test(value)) {
+      fail(index, product, `"addedDate" must be a YYYY-MM-DD date when present`)
+    } else {
+      const date = new Date(`${value}T00:00:00Z`)
+      if (Number.isNaN(date.getTime()) || date.toISOString().slice(0, 10) !== value) {
+        fail(index, product, `"addedDate" is not a real calendar date (found "${value}")`)
+      } else {
+        optionalCounts.addedDate += 1
+      }
+    }
   }
 
   if (!Array.isArray(product.categories) || product.categories.length === 0) {
@@ -273,6 +317,9 @@ console.log(
     .join(", ")}`,
 )
 console.log(`  Removed fields absent: ${REMOVED_FIELDS.join(", ")}`)
+console.log(
+  `  Optional fields: price ${optionalCounts.price}, rating ${optionalCounts.rating}, addedDate ${optionalCounts.addedDate}`,
+)
 console.log(`  Amazon US tag: ${AFFILIATE.amazonUs}`)
 console.log(`  Amazon UK tag: ${AFFILIATE.amazonUk}`)
 console.log(`  Stylevana ref: ${AFFILIATE.stylevanaRef}`)

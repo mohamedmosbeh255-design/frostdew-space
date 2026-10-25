@@ -2,8 +2,8 @@
 
 import { useEffect, useRef } from "react"
 import { Check, X } from "lucide-react"
-import type { Product } from "@/lib/products"
-import { BuyLink, ProductImage } from "./product-card"
+import { formatAddedDate, type Product } from "@/lib/products"
+import { BuyLink, ProductImage, Rating } from "./product-card"
 
 export default function ProductDialog({
   product,
@@ -58,6 +58,7 @@ export default function ProductDialog({
             <h2 id="product-dialog-title" className="font-display text-2xl font-medium leading-snug sm:text-3xl">
               {product.name}
             </h2>
+            {product.rating !== undefined && <Rating rating={product.rating} />}
             <p className="leading-relaxed text-muted-foreground">{product.description}</p>
             {product.features.length > 1 && (
               <ul className="flex flex-col gap-2 text-sm">
@@ -70,10 +71,21 @@ export default function ProductDialog({
               </ul>
             )}
             <div className="mt-2 flex flex-col gap-2">
+              {(product.price || product.addedDate) && (
+                <div className="flex items-baseline justify-between gap-3">
+                  {product.price ? (
+                    <p className="text-lg font-semibold text-midnight">~{product.price}</p>
+                  ) : (
+                    <span />
+                  )}
+                  {product.addedDate && (
+                    <p className="text-xs text-muted-foreground">
+                      Added: {formatAddedDate(product.addedDate) ?? product.addedDate}
+                    </p>
+                  )}
+                </div>
+              )}
               <BuyLink product={product} className="w-full py-3" />
-              <p className="text-center text-xs text-muted-foreground">
-                Prices and availability change. Check the store for today&apos;s price.
-              </p>
             </div>
           </div>
         </div>
