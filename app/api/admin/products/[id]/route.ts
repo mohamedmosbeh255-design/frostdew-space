@@ -83,6 +83,23 @@ export async function DELETE(request: Request, { params }: RouteContext) {
     const index = productIndexById(products, id)
     if (index === -1) return NextResponse.json({ error: "Product not found." }, { status: 404 })
 
+    const referrers = products.filter(
+      (product) =>
+        product.id !== id &&
+        Array.isArray(product.relatedProducts) &&
+        product.relatedProducts.includes(id),
+    )
+    if (referrers.length > 0) {
+      const ids = referrers.map((product) => product.id)
+      return NextResponse.json(
+        {
+          error: `Cannot delete "${id}" because it is referenced by ${ids.length} related product(s): ${ids.join(", ")}. Remove those references first.`,
+          referrers: ids,
+        },
+        { status: 409 },
+      )
+    }
+
     products.splice(index, 1)
     await writeProducts(products)
 

@@ -3,8 +3,22 @@
 import Link from "next/link"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { ADDED_DATE_PATTERN, ALLOWED_CATEGORIES, ALLOWED_STORES, PRICE_PATTERN } from "@/lib/product-rules.mjs"
+import {
+  ADDED_DATE_PATTERN,
+  ALLOWED_CATEGORIES,
+  ALLOWED_STORES,
+  PRICE_PATTERN,
+  validateAffiliate,
+} from "@/lib/product-rules.mjs"
 import type { Product } from "@/lib/products"
+import {
+  STORE_LINK_META,
+  STORE_LINK_ORDER,
+  type StoreLinkKey,
+} from "@/lib/store-links"
+import RelatedProductsPicker, {
+  type RelatedProductOption,
+} from "./related-products-picker"
 
 type Mode = "create" | "edit"
 
@@ -25,6 +39,8 @@ type FormState = {
   rating: string
   reviewCount: string
   addedDate: string
+  affiliateLinks: Record<StoreLinkKey, string>
+  relatedProducts: string[]
 }
 
 const CATEGORY_OPTIONS = [...ALLOWED_CATEGORIES].sort()
@@ -61,6 +77,12 @@ const toInitialState = (product?: Product): FormState => ({
   rating: product?.rating !== undefined ? String(product.rating) : "",
   reviewCount: product?.reviewCount !== undefined ? String(product.reviewCount) : "",
   addedDate: product?.addedDate ?? "",
+  affiliateLinks: {
+    amazonUs: product?.affiliateLinks?.amazonUs ?? "",
+    amazonUk: product?.affiliateLinks?.amazonUk ?? "",
+    stylevana: product?.affiliateLinks?.stylevana ?? "",
+  },
+  relatedProducts: product?.relatedProducts ? [...product.relatedProducts] : [],
 })
 
 function validate(values: FormState): Record<string, string> {
@@ -104,6 +126,37 @@ function validate(values: FormState): Record<string, string> {
 
   if (values.addedDate.trim() && !isRealDate(values.addedDate.trim())) {
     errors.addedDate = "Enter a valid date."
+  }
+
+  // Mirror the server rules for the extra store slots so mistakes surface before saving.
+  const seenUrls = new Map<string, string>()
+  if (values.url.trim() && isHttps(values.url.trim())) {
+    seenUrls.set(new URL(values.url.trim()).href, "the legacy affiliate URL")
+  }
+
+  for (const key of STORE_LINK_ORDER) {
+    const field = `affiliateLinks.${key}`
+    const value = values.affiliateLinks[key].trim()
+    if (!value) continue
+
+    if (!isHttps(value)) {
+      errors[field] = "Enter an https URL."
+      continue
+    }
+
+    const url = new URL(value)
+    const messages = validateAffiliate(
+      { store: STORE_LINK_META[key].legacyStore },
+      url,
+    )
+    if (messages.length > 0) errors[field] = messages[0]
+
+    const reused = seenUrls.get(url.href)
+    if (reused) {
+      errors[field] = errors[field] ?? `Duplicate URL; also used by ${reused}.`
+    } else {
+      seenUrls.set(url.href, STORE_LINK_META[key].label)
+    }
   }
 
   return errors
@@ -187,7 +240,15 @@ function TextField({
   )
 }
 
-export default function ProductForm({ mode, initial }: { mode: Mode; initial?: Product }) {
+export default function ProductForm({
+  mode,
+  initial,
+  productOptions = [],
+}: {
+  mode: Mode
+  initial?: Product
+  productOptions?: RelatedProductOption[]
+}) {
   const router = useRouter()
   const [values, setValues] = useState<FormState>(() => toInitialState(initial))
   const [errors, setErrors] = useState<Record<string, string>>({})
@@ -197,6 +258,13 @@ export default function ProductForm({ mode, initial }: { mode: Mode; initial?: P
 
   const update = <K extends keyof FormState>(key: K, value: FormState[K]) => {
     setValues((current) => ({ ...current, [key]: value }))
+  }
+
+  const updateAffiliateLink = (key: StoreLinkKey, value: string) => {
+    setValues((current) => ({
+      ...current,
+      affiliateLinks: { ...current.affiliateLinks, [key]: value },
+    }))
   }
 
   const toggleCategory = (category: string) => {
@@ -242,6 +310,15 @@ export default function ProductForm({ mode, initial }: { mode: Mode; initial?: P
     if (values.rating.trim()) payload.rating = Number(values.rating)
     if (values.reviewCount.trim()) payload.reviewCount = Number(values.reviewCount)
     if (values.addedDate.trim()) payload.addedDate = values.addedDate.trim()
+
+    const affiliateLinks: Partial<Record<StoreLinkKey, string>> = {}
+    for (const key of STORE_LINK_ORDER) {
+      const value = values.affiliateLinks[key].trim()
+      if (value) affiliateLinks[key] = value
+    }
+    if (Object.keys(affiliateLinks).length > 0) payload.affiliateLinks = affiliateLinks
+
+    if (values.relatedProducts.length > 0) payload.relatedProducts = values.relatedProducts
 
     setPending(true)
     try {
@@ -401,7 +478,7 @@ export default function ProductForm({ mode, initial }: { mode: Mode; initial?: P
               error={errors.url}
               required
               type="url"
-              hint="Store tags are enforced by the validator on save."
+              hint="Primary link. Used when a store-specific link is not provided."
             />
           </div>
         </div>
@@ -518,6 +595,53 @@ export default function ProductForm({ mode, initial }: { mode: Mode; initial?: P
           />
           Bestseller
         </label>
+      </fieldset>
+
+      <fieldset className="rounded-2xl border border-border bg-card p-4 sm:p-5">
+        <legend className="px-1 text-sm font-bold text-midnight">Affiliate Links</legend>
+        <p className="mt-2 text-xs text-muted-foreground">
+          Fill any stores where this product is available.
+        </p>
+        <div className="mt-3 grid gap-4">
+          {STORE_LINK_ORDER.map((key) => (
+            <TextField
+              key={key}
+              id={`affiliateLinks.${key}`}
+              label={`${STORE_LINK_META[key].label} URL (optional)`}
+              value={values.affiliateLinks[key]}
+              onChange={(value) => updateAffiliateLink(key, value)}
+              error={errors[`affiliateLinks.${key}`]}
+              type="url"
+              placeholder={
+                key === "amazonUs"
+                  ? "https://www.amazon.com/dp/…?tag=beautynest202-20"
+                  : key === "amazonUk"
+                    ? "https://www.amazon.co.uk/dp/…?tag=beautynestkor-21"
+                    : "https://www.stylevana.com/…?ref=frostdew"
+              }
+              hint={
+                key === "stylevana"
+                  ? "Use a stylevana.com link with ref=frostdew or an Awin link."
+                  : "The store tag is enforced when you save."
+              }
+            />
+          ))}
+        </div>
+      </fieldset>
+
+      <fieldset className="rounded-2xl border border-border bg-card p-4 sm:p-5">
+        <legend className="px-1 text-sm font-bold text-midnight">Related products</legend>
+        <p className="mt-2 text-xs text-muted-foreground">
+          Choose products to show under &ldquo;You may also like&rdquo;. The first six are displayed.
+        </p>
+        <div className="mt-3">
+          <RelatedProductsPicker
+            options={productOptions}
+            currentId={values.id.trim()}
+            selected={values.relatedProducts}
+            onChange={(ids) => update("relatedProducts", ids)}
+          />
+        </div>
       </fieldset>
 
       <div className="flex flex-wrap items-center gap-3">

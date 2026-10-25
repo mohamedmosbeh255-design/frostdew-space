@@ -40,6 +40,21 @@ All mutations are validated by the same rules used by `pnpm validate:data`
 affiliate tags. Writes go to a temporary file and are renamed into place, so a crash cannot
 leave a half-written JSON file.
 
+## Multiple store links and related products
+
+- **Affiliate Links** — the edit form keeps the legacy `url` + `store` pair and adds optional
+  Amazon US, Amazon UK, and Stylevana URLs below it. When a store-specific link exists it wins
+  for that store; the storefront merges both sources into one deduplicated button set.
+  Every link is checked for the approved host and tag, and the same URL may not appear twice
+  (within one product or across products).
+- **Related products** — search and select existing product IDs at the bottom of the form.
+  The product dialog shows the first six under "You may also like". Every referenced ID must
+  exist; self-references and duplicates are rejected.
+- **Delete guard** — deleting a product that another product lists in `relatedProducts`
+  returns **409** with a `referrers` array. Remove those references before deleting.
+- **No backfill** — existing records are untouched. They keep working through the legacy
+  `url` + `store` pair until you add extra links in the admin form.
+
 ## Production gating
 
 | Variable | Effect |

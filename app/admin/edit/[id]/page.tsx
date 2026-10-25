@@ -14,5 +14,7 @@ export default async function EditProductPage({ params }: { params: Promise<{ id
 
   if (!product) notFound()
 
-  return <ProductForm mode="edit" initial={product} />
+  const productOptions = products.map(({ id, brand, name }) => ({ id, brand, name }))
+
+  return <ProductForm mode="edit" initial={product} productOptions={productOptions} />
 }
