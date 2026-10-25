@@ -11,6 +11,7 @@ import {
   validateAffiliate,
 } from "@/lib/product-rules.mjs"
 import type { Product } from "@/lib/products"
+import { parsePrice } from "@/lib/format"
 import {
   STORE_LINK_META,
   STORE_LINK_ORDER,
@@ -36,6 +37,7 @@ type FormState = {
   features: string
   bestseller: boolean
   price: string
+  salePrice: string
   rating: string
   reviewCount: string
   addedDate: string
@@ -74,6 +76,7 @@ const toInitialState = (product?: Product): FormState => ({
   features: product?.features.join("\n") ?? "",
   bestseller: product?.bestseller ?? false,
   price: product?.price ?? "",
+  salePrice: product?.salePrice ?? "",
   rating: product?.rating !== undefined ? String(product.rating) : "",
   reviewCount: product?.reviewCount !== undefined ? String(product.reviewCount) : "",
   addedDate: product?.addedDate ?? "",
@@ -108,6 +111,24 @@ function validate(values: FormState): Record<string, string> {
 
   if (values.price.trim() && !PRICE_PATTERN.test(values.price.trim())) {
     errors.price = 'Use a currency symbol and amount, e.g. "$24.99" or "£19.99".'
+  }
+
+  if (values.salePrice.trim()) {
+    if (!PRICE_PATTERN.test(values.salePrice.trim())) {
+      errors.salePrice = 'Use a currency symbol and amount, e.g. "$17.50" or "£15.99".'
+    } else if (!values.price.trim()) {
+      errors.salePrice = "Add a regular price first."
+    } else {
+      const regular = parsePrice(values.price.trim())
+      const sale = parsePrice(values.salePrice.trim())
+      if (regular && sale) {
+        if (regular.currency !== sale.currency) {
+          errors.salePrice = "Use the same currency symbol as the regular price."
+        } else if (sale.amount >= regular.amount) {
+          errors.salePrice = "Sale price must be lower than the regular price."
+        }
+      }
+    }
   }
 
   if (values.rating.trim()) {
@@ -307,6 +328,7 @@ export default function ProductForm({
     }
 
     if (values.price.trim()) payload.price = values.price.trim()
+    if (values.salePrice.trim()) payload.salePrice = values.salePrice.trim()
     if (values.rating.trim()) payload.rating = Number(values.rating)
     if (values.reviewCount.trim()) payload.reviewCount = Number(values.reviewCount)
     if (values.addedDate.trim()) payload.addedDate = values.addedDate.trim()
@@ -517,15 +539,26 @@ export default function ProductForm({
             )}
           </div>
 
-          <TextField
-            id="price"
-            label="Price (optional)"
-            value={values.price}
-            onChange={(value) => update("price", value)}
-            error={errors.price}
-            placeholder="$24.99"
-            hint="Include the currency symbol. Displayed with a ~ prefix."
-          />
+          <div className="flex flex-col gap-4">
+            <TextField
+              id="price"
+              label="Price (optional)"
+              value={values.price}
+              onChange={(value) => update("price", value)}
+              error={errors.price}
+              placeholder="$24.99"
+              hint="Include the currency symbol. Displayed with a ~ prefix."
+            />
+            <TextField
+              id="salePrice"
+              label="Sale price (optional)"
+              value={values.salePrice}
+              onChange={(value) => update("salePrice", value)}
+              error={errors.salePrice}
+              placeholder="$17.50"
+              hint="Discounted price. When set, the regular Price is displayed struck through and a -X% badge is shown."
+            />
+          </div>
           <TextField
             id="rating"
             label="Rating (optional)"

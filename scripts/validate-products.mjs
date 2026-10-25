@@ -49,6 +49,7 @@ const optionalCounts = {
   addedDate: 0,
   affiliateLinks: 0,
   relatedProducts: 0,
+  salePrice: 0,
 }
 
 for (const [index, product] of products.entries()) {
@@ -98,7 +99,7 @@ console.log(
 )
 console.log(`  Removed fields absent: ${REMOVED_FIELDS.join(", ")}`)
 console.log(
-  `  Optional fields: price ${optionalCounts.price}, rating ${optionalCounts.rating}, reviewCount ${optionalCounts.reviewCount}, addedDate ${optionalCounts.addedDate}, affiliateLinks ${optionalCounts.affiliateLinks}, relatedProducts ${optionalCounts.relatedProducts}`,
+  `  Optional fields: price ${optionalCounts.price}, rating ${optionalCounts.rating}, reviewCount ${optionalCounts.reviewCount}, addedDate ${optionalCounts.addedDate}, affiliateLinks ${optionalCounts.affiliateLinks}, relatedProducts ${optionalCounts.relatedProducts}, salePrice ${optionalCounts.salePrice}`,
 )
 console.log(`  Amazon US tag: ${AFFILIATE.amazonUs}`)
 console.log(`  Amazon UK tag: ${AFFILIATE.amazonUk}`)

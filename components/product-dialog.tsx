@@ -2,9 +2,9 @@
 
 import { useEffect, useRef } from "react"
 import { Check, X } from "lucide-react"
-import { formatAddedDate, formatPrice } from "@/lib/format"
+import { formatAddedDate } from "@/lib/format"
 import { type Product } from "@/lib/products"
-import { BuyLink, ProductImage, Rating } from "./product-card"
+import { BuyLink, PriceTag, ProductImage, Rating } from "./product-card"
 
 export default function ProductDialog({
   product,
@@ -90,9 +90,7 @@ export default function ProductDialog({
               {(product.price || product.addedDate) && (
                 <div className="flex items-baseline justify-between gap-3">
                   {product.price ? (
-                    <p className="text-lg font-semibold text-midnight">
-                      {formatPrice(product.price)}
-                    </p>
+                    <PriceTag product={product} size="lg" />
                   ) : (
                     <span />
                   )}

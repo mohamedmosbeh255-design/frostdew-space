@@ -6,7 +6,7 @@ export class InvalidInputError extends Error {}
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   Boolean(value) && typeof value === "object" && !Array.isArray(value)
 
-const OPTIONAL_FIELDS = ["price", "rating", "reviewCount", "addedDate"] as const
+const OPTIONAL_FIELDS = ["price", "salePrice", "rating", "reviewCount", "addedDate"] as const
 
 /**
  * Whitelists incoming form fields so arbitrary JSON can never add unexpected keys

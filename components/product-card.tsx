@@ -3,6 +3,7 @@
 import { useState } from "react"
 import { ExternalLink, Star } from "lucide-react"
 import {
+  discountPercent,
   formatAddedDate,
   formatPrice,
   formatRating,
@@ -39,6 +40,38 @@ export function Rating({ rating, reviewCount }: { rating: number; reviewCount?: 
           ({reviewCountLabel(reviewCount)})
         </span>
       )}
+    </div>
+  )
+}
+
+export function PriceTag({
+  product,
+  size = "sm",
+}: {
+  product: Product
+  size?: "sm" | "lg"
+}) {
+  if (!product.price) return null
+
+  const prominentClass =
+    size === "lg" ? "text-lg font-semibold text-midnight" : "text-sm font-semibold text-midnight"
+  const originalClass =
+    size === "lg" ? "text-sm text-muted-foreground line-through" : "text-xs text-muted-foreground line-through"
+
+  const percent = product.salePrice ? discountPercent(product.price, product.salePrice) : null
+
+  // No sale, or a pair the validator would reject: render exactly as before.
+  if (!product.salePrice || percent === null) {
+    return <p className={prominentClass}>{formatPrice(product.price)}</p>
+  }
+
+  return (
+    <div className="flex flex-wrap items-center gap-2">
+      <p className={prominentClass}>{formatPrice(product.salePrice)}</p>
+      <p className={originalClass}>{formatPrice(product.price)}</p>
+      <span className="glass-chip inline-flex items-center rounded-full px-2 py-0.5 text-[0.65rem] font-bold uppercase tracking-[0.14em] text-winter">
+        -{percent}%
+      </span>
     </div>
   )
 }
@@ -134,7 +167,7 @@ export default function ProductCard({
                 <Rating rating={product.rating} reviewCount={product.reviewCount} />
               )}
               {product.price && (
-                <p className="text-sm font-semibold text-midnight">{formatPrice(product.price)}</p>
+                <PriceTag product={product} />
               )}
               {product.addedDate && (
                 <p className="text-xs text-muted-foreground">

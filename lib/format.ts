@@ -26,6 +26,32 @@ export function formatPrice(price: string): string {
   return `~${price}`
 }
 
+const PRICE_PARSE_PATTERN = /^([$£€¥₩₹])\s?(\d{1,3}(?:,\d{3})*(?:\.\d{1,2})?)$/
+
+export type ParsedPrice = {
+  currency: string
+  amount: number
+}
+
+/** Parses the same currency formats the validator accepts. */
+export function parsePrice(value: string): ParsedPrice | null {
+  const match = PRICE_PARSE_PATTERN.exec(value.trim())
+  if (!match) return null
+  const amount = Number(match[2].replace(/,/g, ""))
+  if (!Number.isFinite(amount)) return null
+  return { currency: match[1], amount }
+}
+
+/** Rounded discount percentage, or null when the pair is not a valid discount. */
+export function discountPercent(price: string, salePrice: string): number | null {
+  const regular = parsePrice(price)
+  const sale = parsePrice(salePrice)
+  if (!regular || !sale) return null
+  if (regular.currency !== sale.currency) return null
+  if (sale.amount >= regular.amount) return null
+  return Math.round((1 - sale.amount / regular.amount) * 100)
+}
+
 const STORE_LABELS: Record<string, string> = {
   Amazon: "Amazon US",
   "Amazon UK": "Amazon UK",

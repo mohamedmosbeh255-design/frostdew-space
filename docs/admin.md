@@ -55,6 +55,13 @@ leave a half-written JSON file.
 - **No backfill** — existing records are untouched. They keep working through the legacy
   `url` + `store` pair until you add extra links in the admin form.
 
+## Sale pricing
+
+`salePrice` is optional. When set, it must use the same currency symbol as `price` and be
+strictly lower; `price` must also be present. Product cards and the detail dialog show the
+sale price prominently, the regular price struck through beside it, and a rounded `-X%` pill.
+Products without `salePrice` render exactly as before.
+
 ## Production gating
 
 | Variable | Effect |

@@ -15,6 +15,8 @@ export interface Product {
   bestseller: boolean
   /** Display price including currency symbol, e.g. "$24.99". Shown with a "~" prefix. */
   price?: string
+  /** Discounted price, same currency format as `price`. Requires `price` and must be lower. */
+  salePrice?: string
   /** Manual editorial rating from 1 to 5. */
   rating?: number
   /** Number of reviews behind the rating. Optional. */
