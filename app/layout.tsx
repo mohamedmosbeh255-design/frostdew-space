@@ -10,7 +10,12 @@ const title = 'FrostDew | K-Beauty Skincare for a Winter-Proof Glow'
 const description =
   'Shop a curated collection of Korean skincare: serums, toners, sheet masks, sunscreens and more from trusted K-beauty brands.'
 
+// Absolute base for canonical and social image URLs. Set NEXT_PUBLIC_SITE_URL in
+// production (for example https://frostdew.com); local development falls back here.
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
+
 export const metadata: Metadata = {
+  metadataBase: new URL(siteUrl),
   title,
   description,
   openGraph: {
