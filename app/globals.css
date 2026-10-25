@@ -1,0 +1,207 @@
+@import 'tailwindcss';
+@import 'tw-animate-css';
+@import 'shadcn/tailwind.css';
+
+@theme inline {
+  --font-sans: var(--font-manrope), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-fraunces), ui-serif, Georgia, serif;
+
+  --color-snow: #f8fbff;
+  --color-ice: #dceffc;
+  --color-frost: #b8d9f0;
+  --color-glacier: #5d8fb3;
+  --color-winter: #294a67;
+  --color-midnight: #172d43;
+  --color-amber-cta: #e8a33d;
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --radius-lg: var(--radius);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-sm: calc(var(--radius) - 4px);
+}
+
+:root {
+  color-scheme: light;
+  --radius: 0.75rem;
+  --background: #f8fbff;
+  --foreground: #172d43;
+  --card: #ffffff;
+  --card-foreground: #172d43;
+  --popover: #ffffff;
+  --popover-foreground: #172d43;
+  --primary: #294a67;
+  --primary-foreground: #f8fbff;
+  --secondary: #dceffc;
+  --secondary-foreground: #294a67;
+  --muted: #eaf3fb;
+  --muted-foreground: #4d6b86;
+  --accent: #dceffc;
+  --accent-foreground: #294a67;
+  --destructive: #b3424f;
+  --border: #d5e4f0;
+  --input: #c7dcec;
+  --ring: #5d8fb3;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  html {
+    scroll-behavior: smooth;
+  }
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    background-image:
+      radial-gradient(52rem 36rem at 8% -4%, rgba(220, 239, 252, 0.9), transparent 60%),
+      radial-gradient(44rem 32rem at 96% 4%, rgba(184, 217, 240, 0.55), transparent 62%),
+      radial-gradient(60rem 44rem at 50% 112%, rgba(220, 239, 252, 0.75), transparent 58%);
+    background-attachment: fixed;
+  }
+  ::selection {
+    background: rgba(184, 217, 240, 0.65);
+  }
+  :focus-visible {
+    outline: 2px solid #294a67;
+    outline-offset: 2px;
+  }
+}
+
+section[id] {
+  scroll-margin-top: 4.5rem;
+}
+
+/* Hero */
+.hero-height {
+  height: 100vh;
+  height: 100svh;
+}
+
+.brand-title {
+  text-shadow:
+    0 1px 2px rgba(23, 45, 67, 0.35),
+    0 4px 28px rgba(23, 45, 67, 0.3),
+    0 0 46px rgba(255, 255, 255, 0.35);
+}
+
+/* Frosted surfaces */
+.glass-chip {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0.6));
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.75);
+  box-shadow: 0 4px 14px rgba(23, 45, 67, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.85);
+}
+
+.card-lift {
+  transition:
+    transform 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.card-lift:hover {
+  transform: translateY(-4px);
+  border-color: #b8d9f0;
+  box-shadow: 0 20px 44px rgba(23, 45, 67, 0.14);
+}
+
+.no-scrollbar {
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Snowfall */
+.snow-layer {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.snow-p {
+  position: absolute;
+  top: -6vh;
+  animation: snow-fall var(--dur) linear var(--delay) infinite;
+  will-change: transform;
+}
+
+.snow-i {
+  display: block;
+  width: var(--size);
+  height: var(--size);
+  opacity: var(--o);
+  animation: snow-sway var(--sway-dur) ease-in-out var(--delay) infinite alternate;
+  will-change: transform;
+}
+
+.snow-dot {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: 9999px;
+  background: radial-gradient(circle at 35% 30%, #ffffff 0%, rgba(255, 255, 255, 0.85) 55%, rgba(220, 239, 252, 0.55) 100%);
+  box-shadow: 0 0 3px rgba(93, 143, 179, 0.35);
+}
+
+.snow-paused .snow-p,
+.snow-paused .snow-i {
+  animation-play-state: paused;
+}
+
+@keyframes snow-fall {
+  from { transform: translate3d(0, -6vh, 0); }
+  to { transform: translate3d(0, 108vh, 0); }
+}
+
+@keyframes snow-sway {
+  from { transform: translateX(calc(var(--sway) * -1)) rotate(-14deg); }
+  to { transform: translateX(var(--sway)) rotate(14deg); }
+}
+
+@keyframes brand-in {
+  from { opacity: 0; transform: translateY(18px); filter: blur(6px); }
+  to { opacity: 1; transform: translateY(0); filter: blur(0); }
+}
+.animate-brand-in {
+  opacity: 0;
+  animation: brand-in 1s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+@keyframes cue-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(6px); }
+}
+.animate-cue-float {
+  animation: cue-float 2.2s ease-in-out infinite;
+}
+
+dialog::backdrop {
+  background: rgba(23, 45, 67, 0.55);
+  backdrop-filter: blur(4px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .snow-p, .snow-i, .animate-cue-float { animation: none !important; }
+  .animate-brand-in { animation: none; opacity: 1; }
+  .card-lift, .card-lift:hover { transform: none; }
+}
