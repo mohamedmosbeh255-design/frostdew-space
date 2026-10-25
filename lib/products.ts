@@ -12,9 +12,6 @@ export interface Product {
   image: string
   url: string
   store: string
-  rating: number | null
-  reviews: number
-  size: string
   bestseller: boolean
 }
 
@@ -32,12 +29,10 @@ export const CATEGORIES = [
   { id: "sets", label: "Sets" },
 ] as const
 
-export type SortKey = "featured" | "rating" | "reviews" | "name"
+export type SortKey = "featured" | "name"
 
 export const SORT_OPTIONS: { id: SortKey; label: string }[] = [
   { id: "featured", label: "Featured" },
-  { id: "rating", label: "Top rated" },
-  { id: "reviews", label: "Most reviewed" },
   { id: "name", label: "Name A–Z" },
 ]
 
@@ -59,12 +54,6 @@ export function filterAndSort(
     if (!q) return true
     return `${p.brand} ${p.fullName} ${p.short}`.toLowerCase().includes(q)
   })
-  if (sort === "rating") list.sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0) || b.reviews - a.reviews)
-  else if (sort === "reviews") list.sort((a, b) => b.reviews - a.reviews)
-  else if (sort === "name") list.sort((a, b) => `${a.brand} ${a.name}`.localeCompare(`${b.brand} ${b.name}`))
+  if (sort === "name") list.sort((a, b) => `${a.brand} ${a.name}`.localeCompare(`${b.brand} ${b.name}`))
   return list
-}
-
-export function formatCount(n: number): string {
-  return n.toLocaleString("en-US")
 }

@@ -1,22 +1,8 @@
 "use client"
 
 import { useState } from "react"
-import { ExternalLink, Star } from "lucide-react"
-import { formatCount, type Product } from "@/lib/products"
-
-export function Rating({ product }: { product: Product }) {
-  if (!product.rating) return null
-  return (
-    <div className="flex items-center gap-1.5 text-sm">
-      <Star className="h-4 w-4 fill-amber-cta text-amber-cta" aria-hidden="true" />
-      <span className="font-semibold text-midnight">{product.rating.toFixed(1)}</span>
-      {product.reviews > 0 && (
-        <span className="text-muted-foreground">({formatCount(product.reviews)})</span>
-      )}
-      <span className="sr-only">rating out of 5 from {formatCount(product.reviews)} reviews</span>
-    </div>
-  )
-}
+import { ExternalLink } from "lucide-react"
+import { type Product } from "@/lib/products"
 
 export function ProductImage({ product, className }: { product: Product; className?: string }) {
   const [failed, setFailed] = useState(false)
@@ -87,9 +73,6 @@ export default function ProductCard({
             {product.name}
           </h3>
           <p className="line-clamp-2 text-sm leading-relaxed text-muted-foreground">{product.short}</p>
-          <div className="mt-auto pt-2">
-            <Rating product={product} />
-          </div>
         </div>
       </button>
       <div className="px-5 pb-5">

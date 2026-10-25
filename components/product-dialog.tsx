@@ -3,7 +3,7 @@
 import { useEffect, useRef } from "react"
 import { Check, X } from "lucide-react"
 import type { Product } from "@/lib/products"
-import { BuyLink, ProductImage, Rating } from "./product-card"
+import { BuyLink, ProductImage } from "./product-card"
 
 export default function ProductDialog({
   product,
@@ -58,7 +58,6 @@ export default function ProductDialog({
             <h2 id="product-dialog-title" className="font-display text-2xl font-medium leading-snug sm:text-3xl">
               {product.name}
             </h2>
-            <Rating product={product} />
             <p className="leading-relaxed text-muted-foreground">{product.description}</p>
             {product.features.length > 1 && (
               <ul className="flex flex-col gap-2 text-sm">
