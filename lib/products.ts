@@ -30,6 +30,8 @@ export interface Product {
     amazonUk?: string
     stylevana?: string
   }
+  /** IDs of existing products to show under "You may also like". */
+  relatedProducts?: string[]
 }
 
 export const PRODUCTS: Product[] = data as Product[]

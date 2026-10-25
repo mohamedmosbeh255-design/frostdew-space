@@ -16,6 +16,25 @@ import ProductDialog from "./product-dialog"
 
 const PAGE_SIZE = 12
 
+const PRODUCT_BY_ID = new Map(PRODUCTS.map((product) => [product.id, product]))
+const MAX_RELATED = 6
+
+/** Resolves and deduplicates ids, drops unknown references, and caps the row at six. */
+function relatedFor(product: Product | null): Product[] {
+  if (!product?.relatedProducts?.length) return []
+
+  const seen = new Set<string>()
+  const related: Product[] = []
+  for (const id of product.relatedProducts) {
+    if (seen.has(id)) continue
+    seen.add(id)
+    const match = PRODUCT_BY_ID.get(id)
+    if (match) related.push(match)
+    if (related.length === MAX_RELATED) break
+  }
+  return related
+}
+
 export default function Shop() {
   const [category, setCategory] = useState("all")
   const [query, setQuery] = useState("")
@@ -26,6 +45,7 @@ export default function Shop() {
   const counts = useMemo(() => countByCategory(PRODUCTS), [])
   const results = useMemo(() => filterAndSort(PRODUCTS, category, query, sort), [category, query, sort])
   const shown = results.slice(0, visibleCount)
+  const related = useMemo(() => relatedFor(selected), [selected])
 
   const reset = () => {
     setCategory("all")
@@ -148,7 +168,12 @@ export default function Shop() {
         )}
       </div>
 
-      <ProductDialog product={selected} onClose={() => setSelected(null)} />
+      <ProductDialog
+        product={selected}
+        related={related}
+        onSelectRelated={setSelected}
+        onClose={() => setSelected(null)}
+      />
     </section>
   )
 }
