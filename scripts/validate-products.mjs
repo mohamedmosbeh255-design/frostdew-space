@@ -42,7 +42,7 @@ if (products.length === 0) {
 
 const storeCounts = new Map()
 const categoryCounts = new Map()
-const optionalCounts = { price: 0, rating: 0, reviewCount: 0, addedDate: 0 }
+const optionalCounts = { price: 0, rating: 0, reviewCount: 0, addedDate: 0, affiliateLinks: 0 }
 
 for (const [index, product] of products.entries()) {
   const result = validateProductRecord(product, { allProducts: products, selfIndex: index })
@@ -91,7 +91,7 @@ console.log(
 )
 console.log(`  Removed fields absent: ${REMOVED_FIELDS.join(", ")}`)
 console.log(
-  `  Optional fields: price ${optionalCounts.price}, rating ${optionalCounts.rating}, reviewCount ${optionalCounts.reviewCount}, addedDate ${optionalCounts.addedDate}`,
+  `  Optional fields: price ${optionalCounts.price}, rating ${optionalCounts.rating}, reviewCount ${optionalCounts.reviewCount}, addedDate ${optionalCounts.addedDate}, affiliateLinks ${optionalCounts.affiliateLinks}`,
 )
 console.log(`  Amazon US tag: ${AFFILIATE.amazonUs}`)
 console.log(`  Amazon UK tag: ${AFFILIATE.amazonUk}`)

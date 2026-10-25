@@ -7,9 +7,9 @@ import {
   formatPrice,
   formatRating,
   reviewCountLabel,
-  storeLabel,
 } from "@/lib/format"
 import { type Product } from "@/lib/products"
+import { getProductStoreLinks } from "@/lib/store-links"
 
 export function Rating({ rating, reviewCount }: { rating: number; reviewCount?: number }) {
   const filled = Math.round(rating)
@@ -67,19 +67,28 @@ export function ProductImage({ product, className }: { product: Product; classNa
 }
 
 export function BuyLink({ product, className }: { product: Product; className?: string }) {
-  const label = storeLabel(product.store)
+  const links = getProductStoreLinks(product)
+  const primaryClass =
+    "bg-amber-cta text-midnight hover:bg-[#f0b252]"
+  const secondaryClass = "border border-border bg-white text-winter hover:bg-ice"
+
   return (
-    <div className="flex flex-col gap-2">
-      <a
-        href={product.url}
-        target="_blank"
-        rel="sponsored noopener noreferrer"
-        aria-label={`Check price on ${label}`}
-        className={`inline-flex items-center justify-center gap-2 rounded-full bg-amber-cta px-4 py-2.5 text-sm font-bold text-midnight transition-colors hover:bg-[#f0b252] ${className ?? ""}`}
-      >
-        {label}
-        <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
-      </a>
+    <div className={`flex flex-col gap-2 ${className ?? ""}`}>
+      <div className="flex flex-wrap gap-2">
+        {links.map((link, index) => (
+          <a
+            key={`${link.key}:${link.url}`}
+            href={link.url}
+            target="_blank"
+            rel="sponsored noopener noreferrer"
+            aria-label={`Check price on ${link.label}`}
+            className={`inline-flex flex-1 items-center justify-center gap-2 whitespace-nowrap rounded-full px-3 py-2.5 text-sm font-bold transition-colors ${index === 0 ? primaryClass : secondaryClass}`}
+          >
+            {link.label}
+            <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
+          </a>
+        ))}
+      </div>
       <p className="text-center text-xs leading-snug text-muted-foreground">
         Price and availability may change. Please verify on the store.
       </p>

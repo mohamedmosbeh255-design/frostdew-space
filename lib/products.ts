@@ -21,6 +21,15 @@ export interface Product {
   reviewCount?: number
   /** ISO date the product was added, YYYY-MM-DD. Rendered as "Sep 2026". */
   addedDate?: string
+  /**
+   * Additional store links. The legacy `url` + `store` pair stays as the fallback
+   * for stores that are not listed here.
+   */
+  affiliateLinks?: {
+    amazonUs?: string
+    amazonUk?: string
+    stylevana?: string
+  }
 }
 
 export const PRODUCTS: Product[] = data as Product[]

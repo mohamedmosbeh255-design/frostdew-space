@@ -90,7 +90,7 @@ export default function ProductDialog({
                   )}
                 </div>
               )}
-              <BuyLink product={product} className="w-full py-3" />
+              <BuyLink product={product} className="w-full" />
             </div>
           </div>
         </div>
