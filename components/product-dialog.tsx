@@ -2,7 +2,8 @@
 
 import { useEffect, useRef } from "react"
 import { Check, X } from "lucide-react"
-import { formatAddedDate, type Product } from "@/lib/products"
+import { formatAddedDate, formatPrice } from "@/lib/format"
+import { type Product } from "@/lib/products"
 import { BuyLink, ProductImage, Rating } from "./product-card"
 
 export default function ProductDialog({
@@ -58,7 +59,9 @@ export default function ProductDialog({
             <h2 id="product-dialog-title" className="font-display text-2xl font-medium leading-snug sm:text-3xl">
               {product.name}
             </h2>
-            {product.rating !== undefined && <Rating rating={product.rating} />}
+            {product.rating !== undefined && (
+              <Rating rating={product.rating} reviewCount={product.reviewCount} />
+            )}
             <p className="leading-relaxed text-muted-foreground">{product.description}</p>
             {product.features.length > 1 && (
               <ul className="flex flex-col gap-2 text-sm">
@@ -74,7 +77,9 @@ export default function ProductDialog({
               {(product.price || product.addedDate) && (
                 <div className="flex items-baseline justify-between gap-3">
                   {product.price ? (
-                    <p className="text-lg font-semibold text-midnight">~{product.price}</p>
+                    <p className="text-lg font-semibold text-midnight">
+                      {formatPrice(product.price)}
+                    </p>
                   ) : (
                     <span />
                   )}

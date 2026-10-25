@@ -2,12 +2,23 @@
 
 import { useState } from "react"
 import { ExternalLink, Star } from "lucide-react"
-import { formatAddedDate, storeLabel, type Product } from "@/lib/products"
+import {
+  formatAddedDate,
+  formatPrice,
+  formatRating,
+  reviewCountLabel,
+  storeLabel,
+} from "@/lib/format"
+import { type Product } from "@/lib/products"
 
-export function Rating({ rating }: { rating: number }) {
+export function Rating({ rating, reviewCount }: { rating: number; reviewCount?: number }) {
   const filled = Math.round(rating)
+  const label =
+    reviewCount === undefined
+      ? `Rated ${formatRating(rating)} out of 5`
+      : `Rated ${formatRating(rating)} out of 5 from ${reviewCountLabel(reviewCount)}`
   return (
-    <div className="flex items-center gap-1.5" aria-label={`Rated ${rating.toFixed(1)} out of 5`}>
+    <div className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5" aria-label={label}>
       <span className="flex" aria-hidden="true">
         {[1, 2, 3, 4, 5].map((step) => (
           <Star
@@ -20,7 +31,14 @@ export function Rating({ rating }: { rating: number }) {
           />
         ))}
       </span>
-      <span className="text-xs font-semibold text-midnight">{rating.toFixed(1)}</span>
+      <span className="text-xs font-semibold text-midnight" aria-hidden="true">
+        {formatRating(rating)}
+      </span>
+      {reviewCount !== undefined && (
+        <span className="text-xs text-muted-foreground" aria-hidden="true">
+          ({reviewCountLabel(reviewCount)})
+        </span>
+      )}
     </div>
   )
 }
@@ -103,9 +121,11 @@ export default function ProductCard({
           <p className="line-clamp-2 text-sm leading-relaxed text-muted-foreground">{product.short}</p>
           {(product.rating !== undefined || product.price || product.addedDate) && (
             <div className="mt-auto flex flex-col gap-1 pt-2">
-              {product.rating !== undefined && <Rating rating={product.rating} />}
+              {product.rating !== undefined && (
+                <Rating rating={product.rating} reviewCount={product.reviewCount} />
+              )}
               {product.price && (
-                <p className="text-sm font-semibold text-midnight">~{product.price}</p>
+                <p className="text-sm font-semibold text-midnight">{formatPrice(product.price)}</p>
               )}
               {product.addedDate && (
                 <p className="text-xs text-muted-foreground">

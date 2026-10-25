@@ -17,33 +17,22 @@ export interface Product {
   price?: string
   /** Manual editorial rating from 1 to 5. */
   rating?: number
+  /** Number of reviews behind the rating. Optional. */
+  reviewCount?: number
   /** ISO date the product was added, YYYY-MM-DD. Rendered as "Sep 2026". */
   addedDate?: string
 }
 
 export const PRODUCTS: Product[] = data as Product[]
 
-const STORE_LABELS: Record<string, string> = {
-  Amazon: "Amazon US",
-  "Amazon UK": "Amazon UK",
-  Stylevana: "Stylevana",
-}
-
-export function storeLabel(store: string): string {
-  return STORE_LABELS[store] ?? store
-}
-
-const addedDateFormatter = new Intl.DateTimeFormat("en-US", {
-  month: "short",
-  year: "numeric",
-  timeZone: "UTC",
-})
-
-export function formatAddedDate(iso: string): string | null {
-  const date = new Date(`${iso}T00:00:00Z`)
-  if (Number.isNaN(date.getTime())) return null
-  return addedDateFormatter.format(date)
-}
+export {
+  formatAddedDate,
+  formatNumber,
+  formatPrice,
+  formatRating,
+  reviewCountLabel,
+  storeLabel,
+} from "@/lib/format"
 
 export const CATEGORIES = [
   { id: "all", label: "All" },
