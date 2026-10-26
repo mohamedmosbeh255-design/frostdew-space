@@ -11,6 +11,7 @@ import {
   type Product,
   type SortKey,
 } from "@/lib/products"
+import { AFFILIATE_PROXIMITY_NOTE } from "@/lib/site"
 import ProductCard from "./product-card"
 import ProductDialog from "./product-dialog"
 
@@ -134,6 +135,10 @@ export default function Shop() {
 
         <p className="mt-6 text-sm text-muted-foreground" role="status" aria-live="polite">
           Showing {shown.length} of {results.length} products
+        </p>
+
+        <p className="mt-3 text-xs leading-relaxed text-muted-foreground">
+          {AFFILIATE_PROXIMITY_NOTE}
         </p>
 
         {results.length === 0 ? (

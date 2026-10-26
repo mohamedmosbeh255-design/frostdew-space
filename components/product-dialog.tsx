@@ -4,6 +4,7 @@ import { useEffect, useRef } from "react"
 import { Check, X } from "lucide-react"
 import { formatAddedDate } from "@/lib/format"
 import { type Product } from "@/lib/products"
+import { AFFILIATE_PROXIMITY_NOTE } from "@/lib/site"
 import { BuyLink, PriceTag, ProductImage, Rating } from "./product-card"
 
 export default function ProductDialog({
@@ -101,6 +102,9 @@ export default function ProductDialog({
                   )}
                 </div>
               )}
+              <p className="text-xs leading-relaxed text-muted-foreground">
+                {AFFILIATE_PROXIMITY_NOTE}
+              </p>
               <BuyLink product={product} className="w-full" />
             </div>
           </div>
