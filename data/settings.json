@@ -1,0 +1,56 @@
+{
+  "socialLinks": {
+    "instagram": "",
+    "tiktok": "",
+    "pinterest": "https://www.pinterest.com/beautynest_skincare/",
+    "youtube": "",
+    "x": "",
+    "threads": ""
+  },
+  "content": {
+    "hero": {
+      "eyebrow": "K-Beauty Skincare",
+      "headline": "FROSTDEW",
+      "subheadline": "Skincare for a Winter-Proof Glow",
+      "ctaLabel": "Shop the collection",
+      "ctaHref": "#shop",
+      "activeSeason": "winter",
+      "seasons": {
+        "winter": {
+          "type": "video",
+          "url": "/hero/hero-video.mp4",
+          "posterUrl": "/hero/hero-poster.jpg"
+        },
+        "springSummer": {
+          "type": "image",
+          "url": "",
+          "posterUrl": ""
+        },
+        "autumn": {
+          "type": "image",
+          "url": "",
+          "posterUrl": ""
+        }
+      }
+    },
+    "about": {
+      "eyebrow": "Our Story",
+      "title": "About FrostDew",
+      "intro": "FrostDew is an independent edit of Korean skincare for cold air, indoor heating, and the long stretch of winter when skin asks for more."
+    },
+    "footer": {
+      "tagline": "Skincare for a Winter-Proof Glow"
+    },
+    "contact": {
+      "intro": "Questions about a product, a broken link, or something that needs correcting? Send a note and we will take a look.",
+      "responseTime": "We usually reply within 2 business days. Messages about a specific product are easiest to answer when you include the product name and the page you were on."
+    }
+  },
+  "partners": [
+    {
+      "name": "BeautyNest Korea",
+      "url": "https://beautynestkorea.vercel.app/",
+      "newTab": true
+    }
+  ]
+}

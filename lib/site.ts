@@ -1,7 +1,6 @@
 /** Central site constants shared by pages, metadata, footer, and disclosures. */
 
 export const SITE_NAME = "FrostDew"
-export const SITE_TAGLINE = "Skincare for a Winter-Proof Glow"
 export const CONTACT_EMAIL = "hellofrostdew@gmail.com"
 
 /** Absolute site URL, without a trailing slash. */
@@ -29,3 +28,6 @@ export const LEGAL_LINKS = [
   { href: "/terms", label: "Terms of Use" },
   { href: "/affiliate-disclosure", label: "Affiliate Disclosure" },
 ] as const
+
+// Social links and partner stores are user-managed at runtime in
+// data/settings.json, editable from /admin/settings.

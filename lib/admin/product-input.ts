@@ -38,6 +38,18 @@ export function normalizeProductInput(body: unknown): Product {
 
   out.bestseller = body.bestseller
 
+  if (Object.hasOwn(body, "images")) {
+    if (!Array.isArray(body.images)) {
+      throw new InvalidInputError("images must be an array of image URLs.")
+    }
+
+    // Preserve non-string values so the shared validator can report them.
+    const images = body.images.map((image) =>
+      typeof image === "string" ? image.trim() : image,
+    )
+    if (images.length > 0) out.images = images
+  }
+
   for (const field of OPTIONAL_FIELDS) {
     if (!Object.hasOwn(body, field)) continue
     const value = body[field]

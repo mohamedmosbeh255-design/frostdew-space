@@ -1,6 +1,8 @@
 import type { Metadata } from "next"
+import { connection } from "next/server"
 import ContactForm from "@/components/contact-form"
 import PageShell from "@/components/page-shell"
+import { readSiteSettings } from "@/lib/site-settings"
 import { CONTACT_EMAIL } from "@/lib/site"
 
 export const metadata: Metadata = {
@@ -9,7 +11,10 @@ export const metadata: Metadata = {
     "Contact FrostDew with product questions, corrections, or partnership enquiries. Email hellofrostdew@gmail.com.",
 }
 
-export default function ContactPage() {
+export default async function ContactPage() {
+  await connection()
+  const { content } = await readSiteSettings()
+
   return (
     <PageShell>
       <div className="relative isolate overflow-hidden">
@@ -28,8 +33,7 @@ export default function ContactPage() {
             Contact FrostDew
           </h1>
           <p className="mt-5 max-w-2xl text-lg leading-relaxed text-winter">
-            Questions about a product, a broken link, or something that needs correcting? Send a
-            note and we will take a look.
+            {content.contact.intro}
           </p>
 
           <div className="mt-10 grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
@@ -50,10 +54,9 @@ export default function ContactPage() {
                 <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-glacier">
                   Response time
                 </h2>
-                {/* PLACEHOLDER: Confirm the real response-time commitment. */}
+                {/* Response-time commitment is editable in Site settings. */}
                 <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-                  We usually reply within 2 business days. Messages about a specific product are
-                  easiest to answer when you include the product name and the page you were on.
+                  {content.contact.responseTime}
                 </p>
               </div>
 

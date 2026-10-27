@@ -2,6 +2,7 @@ import type { Metadata } from "next"
 import { notFound } from "next/navigation"
 import AdminLogin from "@/components/admin/admin-login"
 import AdminLogout from "@/components/admin/admin-logout"
+import AdminNav from "@/components/admin/admin-nav"
 import {
   adminFeatureEnabled,
   isAdminAuthenticated,
@@ -30,9 +31,14 @@ export default async function AdminLayout({ children }: { children: React.ReactN
             <p className="text-[0.7rem] font-bold uppercase tracking-[0.2em] text-glacier">
               FrostDew admin
             </p>
-            <p className="font-display text-xl text-midnight">Product management</p>
+            <p className="font-display text-xl text-midnight">Store management</p>
           </div>
-          {authenticated && <AdminLogout />}
+          {authenticated && (
+            <div className="flex flex-wrap items-center gap-2">
+              <AdminNav />
+              <AdminLogout />
+            </div>
+          )}
         </div>
       </header>
 
@@ -42,7 +48,8 @@ export default async function AdminLayout({ children }: { children: React.ReactN
           className="rounded-xl border border-amber-cta/50 bg-amber-cta/10 px-4 py-3 text-xs leading-relaxed text-midnight"
         >
           <strong>Development / prototype.</strong> Changes are written straight to{" "}
-          <code className="rounded bg-white/70 px-1">data/products.json</code> on this machine.
+          <code className="rounded bg-white/70 px-1">data/products.json</code> and{" "}
+          <code className="rounded bg-white/70 px-1">data/settings.json</code> on this machine.
           There is no database, audit log, or multi-user access control here. Production should
           connect to a real backend — see <code className="rounded bg-white/70 px-1">docs/admin.md</code>.
         </p>

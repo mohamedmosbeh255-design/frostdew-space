@@ -7,7 +7,7 @@ import {
   readProducts,
   writeProducts,
 } from "@/lib/admin/products-store"
-import { validateProductRecord } from "@/lib/product-rules.mjs"
+import { findDuplicateProduct, validateProductRecord } from "@/lib/product-rules.mjs"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -52,6 +52,28 @@ export async function PUT(request: Request, { params }: RouteContext) {
 
     // The id is the React key and route param, so it stays immutable after creation.
     candidate.id = id
+
+    // Exclude this record so an unchanged brand + name is always allowed.
+    const duplicateNameIndex = findDuplicateProduct(
+      products,
+      candidate.brand,
+      candidate.name,
+      index,
+    )
+    if (duplicateNameIndex !== -1) {
+      const match = products[duplicateNameIndex]
+      return NextResponse.json(
+        {
+          error: "A product with this name already exists.",
+          field: "name",
+          duplicate: { id: match.id, brand: match.brand, name: match.name },
+          errors: [
+            `A product with this name already exists for ${match.brand} (${match.name}, ${match.id}).`,
+          ],
+        },
+        { status: 409 },
+      )
+    }
 
     const { errors, warnings } = validateProductRecord(candidate, {
       allProducts: products,

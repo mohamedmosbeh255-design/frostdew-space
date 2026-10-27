@@ -6,6 +6,7 @@ import { formatAddedDate } from "@/lib/format"
 import { type Product } from "@/lib/products"
 import { AFFILIATE_PROXIMITY_NOTE } from "@/lib/site"
 import { BuyLink, PriceTag, ProductImage, Rating } from "./product-card"
+import ProductGallery from "./product-gallery"
 
 export default function ProductDialog({
   product,
@@ -62,12 +63,7 @@ export default function ProductDialog({
           >
             <X className="h-5 w-5" />
           </button>
-          <div className="bg-white">
-            <ProductImage
-              product={product}
-              className="aspect-square h-full w-full object-contain p-6"
-            />
-          </div>
+          <ProductGallery product={product} />
           <div className="flex flex-col gap-4 p-6 sm:p-8">
             <p className="text-xs font-bold uppercase tracking-[0.2em] text-glacier">{product.brand}</p>
             <h2 id="product-dialog-title" className="font-display text-2xl font-medium leading-snug sm:text-3xl">

@@ -1,8 +1,13 @@
 import { NextResponse } from "next/server"
 import { guardRead, guardWrite } from "@/lib/admin/api-guard"
 import { InvalidInputError, normalizeProductInput } from "@/lib/admin/product-input"
-import { ProductStoreError, readProducts, writeProducts } from "@/lib/admin/products-store"
-import { validateProductRecord } from "@/lib/product-rules.mjs"
+import {
+  ProductStoreError,
+  productIndexById,
+  readProducts,
+  writeProducts,
+} from "@/lib/admin/products-store"
+import { findDuplicateProduct, validateProductRecord } from "@/lib/product-rules.mjs"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -34,6 +39,43 @@ export async function POST(request: Request) {
 
   try {
     const products = await readProducts()
+
+    if (typeof candidate.id === "string" && candidate.id.trim() !== "") {
+      const duplicateIdIndex = productIndexById(products, candidate.id)
+      if (duplicateIdIndex !== -1) {
+        const match = products[duplicateIdIndex]
+        return NextResponse.json(
+          {
+            error: "A product with this ID already exists.",
+            field: "id",
+            duplicate: { id: match.id, brand: match.brand, name: match.name },
+            errors: [`A product with this ID already exists (${match.id}).`],
+          },
+          { status: 409 },
+        )
+      }
+    }
+
+    const duplicateNameIndex = findDuplicateProduct(
+      products,
+      candidate.brand,
+      candidate.name,
+    )
+    if (duplicateNameIndex !== -1) {
+      const match = products[duplicateNameIndex]
+      return NextResponse.json(
+        {
+          error: "A product with this name already exists.",
+          field: "name",
+          duplicate: { id: match.id, brand: match.brand, name: match.name },
+          errors: [
+            `A product with this name already exists for ${match.brand} (${match.name}, ${match.id}).`,
+          ],
+        },
+        { status: 409 },
+      )
+    }
+
     const { errors, warnings } = validateProductRecord(candidate, { allProducts: products })
 
     if (errors.length > 0) {

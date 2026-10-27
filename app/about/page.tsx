@@ -1,7 +1,9 @@
 import type { Metadata } from "next"
 import Link from "next/link"
+import { connection } from "next/server"
 import LegalPage from "@/components/legal-page"
 import PageShell from "@/components/page-shell"
+import { readSiteSettings } from "@/lib/site-settings"
 import { CONTACT_EMAIL } from "@/lib/site"
 
 export const metadata: Metadata = {
@@ -10,13 +12,16 @@ export const metadata: Metadata = {
     "Learn who is behind FrostDew, how we curate Korean skincare, and how we choose the products we recommend.",
 }
 
-export default function AboutPage() {
+export default async function AboutPage() {
+  await connection()
+  const { content } = await readSiteSettings()
+
   return (
     <PageShell>
       <LegalPage
-        eyebrow="Our Story"
-        title="About FrostDew"
-        intro="FrostDew is an independent edit of Korean skincare for cold air, indoor heating, and the long stretch of winter when skin asks for more."
+        eyebrow={content.about.eyebrow}
+        title={content.about.title}
+        intro={content.about.intro}
       >
         <p>
           We are not a brand, a clinic, or a marketplace. We are a small editorial site that

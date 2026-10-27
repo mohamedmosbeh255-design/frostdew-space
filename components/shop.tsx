@@ -4,7 +4,6 @@ import { useMemo, useState } from "react"
 import { Search, X } from "lucide-react"
 import {
   CATEGORIES,
-  PRODUCTS,
   SORT_OPTIONS,
   countByCategory,
   filterAndSort,
@@ -16,12 +15,13 @@ import ProductCard from "./product-card"
 import ProductDialog from "./product-dialog"
 
 const PAGE_SIZE = 12
-
-const PRODUCT_BY_ID = new Map(PRODUCTS.map((product) => [product.id, product]))
 const MAX_RELATED = 6
 
 /** Resolves and deduplicates ids, drops unknown references, and caps the row at six. */
-function relatedFor(product: Product | null): Product[] {
+function relatedFor(
+  product: Product | null,
+  productById: Map<string, Product>,
+): Product[] {
   if (!product?.relatedProducts?.length) return []
 
   const seen = new Set<string>()
@@ -29,24 +29,34 @@ function relatedFor(product: Product | null): Product[] {
   for (const id of product.relatedProducts) {
     if (seen.has(id)) continue
     seen.add(id)
-    const match = PRODUCT_BY_ID.get(id)
+    const match = productById.get(id)
     if (match) related.push(match)
     if (related.length === MAX_RELATED) break
   }
   return related
 }
 
-export default function Shop() {
+export default function Shop({ products }: { products: Product[] }) {
   const [category, setCategory] = useState("all")
   const [query, setQuery] = useState("")
   const [sort, setSort] = useState<SortKey>("featured")
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE)
   const [selected, setSelected] = useState<Product | null>(null)
 
-  const counts = useMemo(() => countByCategory(PRODUCTS), [])
-  const results = useMemo(() => filterAndSort(PRODUCTS, category, query, sort), [category, query, sort])
+  const productById = useMemo(
+    () => new Map(products.map((product) => [product.id, product])),
+    [products],
+  )
+  const counts = useMemo(() => countByCategory(products), [products])
+  const results = useMemo(
+    () => filterAndSort(products, category, query, sort),
+    [products, category, query, sort],
+  )
   const shown = results.slice(0, visibleCount)
-  const related = useMemo(() => relatedFor(selected), [selected])
+  const related = useMemo(
+    () => relatedFor(selected, productById),
+    [selected, productById],
+  )
 
   const reset = () => {
     setCategory("all")
@@ -64,7 +74,7 @@ export default function Shop() {
             Korean skincare, curated
           </h2>
           <p className="mt-4 leading-relaxed text-muted-foreground">
-            {PRODUCTS.length} products from trusted K-beauty brands. Tap any product for details, or go
+            {products.length} products from trusted K-beauty brands. Tap any product for details, or go
             straight to the store.
           </p>
           <p className="mt-3 text-sm text-muted-foreground">

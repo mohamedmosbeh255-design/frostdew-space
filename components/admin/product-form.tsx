@@ -1,15 +1,20 @@
 "use client"
 
 import Link from "next/link"
-import { useState } from "react"
+import { useMemo, useState } from "react"
 import { useRouter } from "next/navigation"
+import { ChevronDown, Plus, Trash2 } from "lucide-react"
 import {
   ADDED_DATE_PATTERN,
   ALLOWED_CATEGORIES,
   ALLOWED_STORES,
+  MAX_EXTRA_PRODUCT_IMAGES,
   PRICE_PATTERN,
+  isValidImageSource,
+  productDuplicateKey,
   validateAffiliate,
 } from "@/lib/product-rules.mjs"
+import { mediaSourceKey } from "@/lib/media-source.mjs"
 import type { Product } from "@/lib/products"
 import { parsePrice } from "@/lib/format"
 import {
@@ -17,11 +22,15 @@ import {
   STORE_LINK_ORDER,
   type StoreLinkKey,
 } from "@/lib/store-links"
+import MediaUploadButton, { MediaPreview } from "./media-upload"
 import RelatedProductsPicker, {
   type RelatedProductOption,
 } from "./related-products-picker"
 
 type Mode = "create" | "edit"
+
+const DUPLICATE_NAME_MESSAGE = "A product with this name already exists."
+const DUPLICATE_ID_MESSAGE = "A product with this ID already exists."
 
 type FormState = {
   id: string
@@ -31,6 +40,7 @@ type FormState = {
   short: string
   description: string
   image: string
+  images: string[]
   url: string
   store: string
   categories: string[]
@@ -70,6 +80,7 @@ const toInitialState = (product?: Product): FormState => ({
   short: product?.short ?? "",
   description: product?.description ?? "",
   image: product?.image ?? "",
+  images: product?.images ? [...product.images] : [],
   url: product?.url ?? "",
   store: product?.store ?? "Amazon",
   categories: product?.categories ?? [],
@@ -101,7 +112,36 @@ function validate(values: FormState): Record<string, string> {
   }
 
   if (!values.image.trim()) errors.image = "This field is required."
-  else if (!isHttps(values.image.trim())) errors.image = "Enter an https image URL."
+  else if (!isValidImageSource(values.image.trim())) {
+    errors.image = "Enter an https:// image URL or a local /uploads/... path."
+  }
+
+  if (values.images.length > MAX_EXTRA_PRODUCT_IMAGES) {
+    errors.images = `Add ${MAX_EXTRA_PRODUCT_IMAGES} extra images or fewer.`
+  }
+
+  const seenImages = new Map<string, string>()
+  const mainImageKey = mediaSourceKey(values.image.trim())
+  if (mainImageKey) seenImages.set(mainImageKey, "the main image")
+
+  values.images.forEach((raw, index) => {
+    const field = `images.${index}`
+    const image = raw.trim()
+    if (!image) return
+
+    if (!isValidImageSource(image)) {
+      errors[field] = "Enter an https:// image URL or a local /uploads/... path."
+      return
+    }
+
+    const key = mediaSourceKey(image)
+    const reused = key ? seenImages.get(key) : undefined
+    if (reused) {
+      errors[field] = `This image is already used by ${reused}.`
+      return
+    }
+    if (key) seenImages.set(key, `image ${index + 2}`)
+  })
 
   if (!values.url.trim()) errors.url = "This field is required."
   else if (!isHttps(values.url.trim())) errors.url = "Enter an https product URL."
@@ -189,6 +229,7 @@ type TextFieldProps = {
   value: string
   onChange: (value: string) => void
   error?: string
+  warning?: string
   hint?: string
   type?: string
   required?: boolean
@@ -208,6 +249,7 @@ function TextField({
   value,
   onChange,
   error,
+  warning,
   hint,
   type = "text",
   required,
@@ -228,8 +270,11 @@ function TextField({
     disabled,
     placeholder,
     autoComplete,
-    "aria-invalid": error ? true : undefined,
-    "aria-describedby": error ? `${id}-error` : undefined,
+    "aria-invalid": error || warning ? true : undefined,
+    "aria-describedby":
+      [error ? `${id}-error` : null, warning ? `${id}-warning` : null]
+        .filter(Boolean)
+        .join(" ") || undefined,
     onChange: (
       event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
     ) => onChange(event.target.value),
@@ -252,6 +297,15 @@ function TextField({
         <input {...shared} type={type} step={step} min={min} max={max} />
       )}
       {hint && <p className="text-xs text-muted-foreground">{hint}</p>}
+      {warning && (
+        <p
+          id={`${id}-warning`}
+          role="alert"
+          className="rounded-md bg-amber-cta/10 px-2 py-1 text-xs font-semibold text-[#8a5a12]"
+        >
+          {warning}
+        </p>
+      )}
       {error && (
         <p id={`${id}-error`} role="alert" className="text-xs font-medium text-destructive">
           {error}
@@ -276,9 +330,60 @@ export default function ProductForm({
   const [serverErrors, setServerErrors] = useState<string[]>([])
   const [message, setMessage] = useState<string | null>(null)
   const [pending, setPending] = useState(false)
+  const [imagesExpanded, setImagesExpanded] = useState(
+    () => (initial?.images?.length ?? 0) > 0,
+  )
+
+  // Live duplicate check against the trimmed options already loaded by the
+  // add/edit page. The API repeats this check as the source of truth.
+  const nameMatch = useMemo(() => {
+    const key = productDuplicateKey(values.brand, values.name)
+    if (!key) return null
+
+    return (
+      productOptions.find(
+        (option) =>
+          option.id !== initial?.id &&
+          productDuplicateKey(option.brand, option.name) === key,
+      ) ?? null
+    )
+  }, [initial?.id, productOptions, values.brand, values.name])
+
+  const idMatch = useMemo(() => {
+    if (mode === "edit") return null
+    const id = values.id.trim()
+    if (!id) return null
+    return productOptions.find((option) => option.id === id) ?? null
+  }, [mode, productOptions, values.id])
+
+  const saveBlocked =
+    Boolean(nameMatch) ||
+    Boolean(idMatch) ||
+    errors.name === DUPLICATE_NAME_MESSAGE ||
+    errors.id === DUPLICATE_ID_MESSAGE
+
+  const clearImageErrors = () => {
+    setErrors((current) => {
+      const next = { ...current }
+      for (const key of Object.keys(next)) {
+        if (key === "images" || key.startsWith("images.")) delete next[key]
+      }
+      return next
+    })
+  }
 
   const update = <K extends keyof FormState>(key: K, value: FormState[K]) => {
     setValues((current) => ({ ...current, [key]: value }))
+    setErrors((current) => {
+      const fields = [String(key)]
+      // The name warning depends on both sides of the brand + name key.
+      if (key === "brand" || key === "name") fields.push("name")
+      const next = { ...current }
+      for (const field of fields) delete next[field]
+      return next
+    })
+    setMessage(null)
+    setServerErrors([])
   }
 
   const updateAffiliateLink = (key: StoreLinkKey, value: string) => {
@@ -286,6 +391,39 @@ export default function ProductForm({
       ...current,
       affiliateLinks: { ...current.affiliateLinks, [key]: value },
     }))
+  }
+
+  const updateImage = (index: number, value: string) => {
+    setValues((current) => ({
+      ...current,
+      images: current.images.map((image, position) =>
+        position === index ? value : image,
+      ),
+    }))
+    setErrors((current) => {
+      const next = { ...current }
+      delete next[`images.${index}`]
+      delete next.images
+      return next
+    })
+    setMessage(null)
+  }
+
+  const addImage = () => {
+    if (values.images.length >= MAX_EXTRA_PRODUCT_IMAGES) return
+    setValues((current) => ({ ...current, images: [...current.images, ""] }))
+    setImagesExpanded(true)
+    clearImageErrors()
+    setMessage(null)
+  }
+
+  const removeImage = (index: number) => {
+    setValues((current) => ({
+      ...current,
+      images: current.images.filter((_, position) => position !== index),
+    }))
+    clearImageErrors()
+    setMessage(null)
   }
 
   const toggleCategory = (category: string) => {
@@ -303,6 +441,8 @@ export default function ProductForm({
     setServerErrors([])
 
     const nextErrors = validate(values)
+    if (nameMatch) nextErrors.name = DUPLICATE_NAME_MESSAGE
+    if (idMatch) nextErrors.id = DUPLICATE_ID_MESSAGE
     setErrors(nextErrors)
     if (Object.keys(nextErrors).length > 0) {
       setMessage("Please fix the highlighted fields.")
@@ -326,6 +466,9 @@ export default function ProductForm({
         .filter(Boolean),
       bestseller: values.bestseller,
     }
+
+    const images = values.images.map((image) => image.trim()).filter(Boolean)
+    if (images.length > 0) payload.images = images
 
     if (values.price.trim()) payload.price = values.price.trim()
     if (values.salePrice.trim()) payload.salePrice = values.salePrice.trim()
@@ -358,11 +501,25 @@ export default function ProductForm({
       const data = (await response.json().catch(() => ({}))) as {
         error?: string
         errors?: string[]
+        field?: string
+        duplicate?: { id: string; brand: string; name: string }
       }
 
       if (!response.ok) {
         setMessage(data.error ?? "Could not save the product.")
         setServerErrors(data.errors ?? [])
+
+        // Keep 409 uniqueness conflicts attached to the field that caused them,
+        // even if this client's product list was stale.
+        if (data.field === "name" || data.field === "id") {
+          const field = data.field
+          setErrors((current) => ({
+            ...current,
+            [field]:
+              data.error ??
+              (field === "name" ? DUPLICATE_NAME_MESSAGE : DUPLICATE_ID_MESSAGE),
+          }))
+        }
         return
       }
 
@@ -417,10 +574,17 @@ export default function ProductForm({
             label="ID (slug)"
             value={values.id}
             onChange={(value) => update("id", value)}
-            error={errors.id}
+            error={idMatch ? undefined : errors.id}
+            warning={idMatch ? DUPLICATE_ID_MESSAGE : undefined}
             required
             disabled={mode === "edit"}
-            hint={mode === "edit" ? "Immutable after creation." : "Lowercase, hyphenated, unique."}
+            hint={
+              idMatch
+                ? `Already used by ${idMatch.brand} — ${idMatch.name}.`
+                : mode === "edit"
+                  ? "Immutable after creation."
+                  : "Lowercase, hyphenated, unique."
+            }
           />
           <TextField
             id="brand"
@@ -435,7 +599,13 @@ export default function ProductForm({
             label="Name"
             value={values.name}
             onChange={(value) => update("name", value)}
-            error={errors.name}
+            error={nameMatch ? undefined : errors.name}
+            warning={nameMatch ? DUPLICATE_NAME_MESSAGE : undefined}
+            hint={
+              nameMatch
+                ? `Already used by ${nameMatch.brand} — ${nameMatch.name} (${nameMatch.id}).`
+                : undefined
+            }
             required
           />
           <TextField
@@ -484,13 +654,14 @@ export default function ProductForm({
           <div className="grid gap-4 sm:grid-cols-2">
             <TextField
               id="image"
-              label="Image URL"
+              label="Product Image URL"
               value={values.image}
               onChange={(value) => update("image", value)}
               error={errors.image}
               required
-              type="url"
+              type="text"
               placeholder="https://m.media-amazon.com/images/…"
+              hint="Main image on product cards. Paste an https:// URL or a local /uploads/... path."
             />
             <TextField
               id="url"
@@ -502,6 +673,128 @@ export default function ProductForm({
               type="url"
               hint="Primary link. Used when a store-specific link is not provided."
             />
+          </div>
+
+          <div className="rounded-xl border border-border bg-white/60 p-4">
+            <button
+              type="button"
+              onClick={() => setImagesExpanded((current) => !current)}
+              aria-expanded={imagesExpanded}
+              aria-controls="extra-product-images"
+              className="flex w-full items-center justify-between gap-3 text-left"
+            >
+              <span className="inline-flex flex-wrap items-center gap-2 text-sm font-semibold text-midnight">
+                <Plus className="h-4 w-4 text-glacier" aria-hidden="true" />
+                Add extra images
+                {values.images.length > 0 && (
+                  <span className="rounded-full bg-ice px-2 py-0.5 text-[0.65rem] font-bold text-winter">
+                    {values.images.length}
+                  </span>
+                )}
+              </span>
+              <ChevronDown
+                className={`h-4 w-4 shrink-0 text-muted-foreground transition-transform ${
+                  imagesExpanded ? "rotate-180" : ""
+                }`}
+                aria-hidden="true"
+              />
+            </button>
+
+            {imagesExpanded && (
+              <div id="extra-product-images" className="mt-3 flex flex-col gap-3">
+                <p className="text-xs leading-relaxed text-muted-foreground">
+                  Extra images appear after the main photo in the product popup gallery. The
+                  main image always stays first.
+                </p>
+
+                {values.images.length === 0 ? (
+                  <button
+                    type="button"
+                    onClick={addImage}
+                    className="inline-flex w-fit items-center gap-1.5 rounded-full border border-border bg-white px-4 py-2 text-xs font-semibold text-winter transition-colors hover:bg-ice"
+                  >
+                    <Plus className="h-3.5 w-3.5" aria-hidden="true" />
+                    Add image
+                  </button>
+                ) : (
+                  <>
+                    {values.images.map((image, index) => (
+                      <div
+                        key={index}
+                        className="rounded-xl border border-border bg-white/70 p-3"
+                      >
+                        <div className="flex items-center justify-between gap-2">
+                          <p className="text-[0.7rem] font-bold uppercase tracking-[0.2em] text-glacier">
+                            Image {index + 2}
+                          </p>
+                          <button
+                            type="button"
+                            onClick={() => removeImage(index)}
+                            className="inline-flex items-center gap-1 text-xs font-semibold text-destructive underline-offset-2 transition-colors hover:underline"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
+                            Remove
+                          </button>
+                        </div>
+
+                        <div className="mt-3 grid gap-3 sm:grid-cols-[5.5rem_1fr]">
+                          <div className="aspect-square overflow-hidden rounded-lg border border-border bg-ice">
+                            <MediaPreview
+                              src={image}
+                              alt={`Extra image ${index + 2} preview`}
+                              className="h-full w-full object-contain"
+                            />
+                          </div>
+
+                          <div className="flex flex-col gap-2">
+                            <TextField
+                              id={`images-${index}`}
+                              label={`Image ${index + 2} URL`}
+                              value={image}
+                              onChange={(value) => updateImage(index, value)}
+                              error={errors[`images.${index}`]}
+                              placeholder="https://… or /uploads/products/…"
+                              hint="Leave this row blank to ignore it."
+                            />
+                            <div>
+                              <MediaUploadButton
+                                kind="product"
+                                label="Upload image"
+                                disabled={pending}
+                                onUploaded={(uploaded) =>
+                                  updateImage(index, uploaded.url)
+                                }
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <button
+                        type="button"
+                        onClick={addImage}
+                        disabled={values.images.length >= MAX_EXTRA_PRODUCT_IMAGES}
+                        className="inline-flex items-center gap-1.5 rounded-full border border-border bg-white px-4 py-2 text-xs font-semibold text-winter transition-colors hover:bg-ice disabled:opacity-60"
+                      >
+                        <Plus className="h-3.5 w-3.5" aria-hidden="true" />
+                        Add another image
+                      </button>
+                      <p className="text-xs text-muted-foreground">
+                        {values.images.length} of {MAX_EXTRA_PRODUCT_IMAGES} extra images
+                      </p>
+                    </div>
+                  </>
+                )}
+
+                {errors.images && (
+                  <p role="alert" className="text-xs font-medium text-destructive">
+                    {errors.images}
+                  </p>
+                )}
+              </div>
+            )}
           </div>
         </div>
       </fieldset>
@@ -680,11 +973,19 @@ export default function ProductForm({
       <div className="flex flex-wrap items-center gap-3">
         <button
           type="submit"
-          disabled={pending}
-          className="inline-flex items-center justify-center rounded-full bg-amber-cta px-5 py-2.5 text-sm font-bold text-midnight transition-colors hover:bg-[#f0b252] disabled:opacity-60"
+          disabled={pending || saveBlocked}
+          aria-describedby={saveBlocked ? "save-blocked-reason" : undefined}
+          className="inline-flex items-center justify-center rounded-full bg-amber-cta px-5 py-2.5 text-sm font-bold text-midnight transition-colors hover:bg-[#f0b252] disabled:cursor-not-allowed disabled:opacity-60"
         >
           {pending ? "Saving…" : mode === "create" ? "Create product" : "Save changes"}
         </button>
+        {saveBlocked && (
+          <p id="save-blocked-reason" role="status" className="text-xs font-semibold text-[#8a5a12]">
+            {nameMatch || errors.name === DUPLICATE_NAME_MESSAGE
+              ? "Change the brand or name to save."
+              : "Resolve the duplicate ID to save."}
+          </p>
+        )}
         <Link href="/admin" className="text-sm font-semibold text-winter underline-offset-4 hover:underline">
           Cancel
         </Link>

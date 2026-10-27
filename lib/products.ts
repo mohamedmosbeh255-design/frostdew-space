@@ -1,5 +1,3 @@
-import data from "@/data/products.json"
-
 export interface Product {
   id: string
   brand: string
@@ -10,6 +8,11 @@ export interface Product {
   description: string
   features: string[]
   image: string
+  /**
+   * Additional gallery images, shown after `image` in the product dialog.
+   * Optional; existing products with a single image remain valid.
+   */
+  images?: string[]
   url: string
   store: string
   bestseller: boolean
@@ -35,8 +38,6 @@ export interface Product {
   /** IDs of existing products to show under "You may also like". */
   relatedProducts?: string[]
 }
-
-export const PRODUCTS: Product[] = data as Product[]
 
 export {
   formatAddedDate,

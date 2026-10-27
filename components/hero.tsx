@@ -2,11 +2,19 @@
 
 import { useEffect, useRef, useState } from "react"
 import { ChevronDown } from "lucide-react"
+import { resolveActiveHeroMedia } from "@/lib/hero-media"
+import type { SiteContent } from "@/lib/site-content"
 
-export default function Hero() {
+export default function Hero({ content }: { content: SiteContent["hero"] }) {
   const sectionRef = useRef<HTMLElement>(null)
   const videoRef = useRef<HTMLVideoElement>(null)
-  const [videoFailed, setVideoFailed] = useState(false)
+  const media = resolveActiveHeroMedia(content)
+  const [mediaFailed, setMediaFailed] = useState(false)
+  const fallbackImage = media.posterUrl || "/hero/hero-poster.jpg"
+
+  useEffect(() => {
+    setMediaFailed(false)
+  }, [media.url, media.type])
 
   useEffect(() => {
     const section = sectionRef.current
@@ -33,29 +41,44 @@ export default function Hero() {
       id="home"
       ref={sectionRef}
       className="hero-height relative w-full overflow-hidden"
-      aria-label="FROSTDEW — K-Beauty Skincare"
+      aria-label={`${content.headline} — ${content.eyebrow}`}
     >
       <div
         className="absolute inset-0"
         style={{ transform: "scale(calc(1.02 + var(--scroll-p, 0) * 0.06))" }}
       >
-        {videoFailed ? (
+        {media.type === "video" ? (
+          mediaFailed ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={fallbackImage} alt="" className="h-full w-full object-cover" />
+          ) : (
+            <video
+              key={media.url}
+              ref={videoRef}
+              className="h-full w-full object-cover"
+              src={media.url}
+              poster={media.posterUrl || undefined}
+              autoPlay
+              muted
+              loop
+              playsInline
+              preload="auto"
+              aria-hidden="true"
+              onError={() => setMediaFailed(true)}
+              onCanPlay={() => videoRef.current?.play().catch(() => undefined)}
+            />
+          )
+        ) : mediaFailed ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src="/hero/hero-poster.jpg" alt="" className="h-full w-full object-cover" />
+          <img src={fallbackImage} alt="" className="h-full w-full object-cover" />
         ) : (
-          <video
-            ref={videoRef}
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            key={media.url}
+            src={media.url}
+            alt=""
             className="h-full w-full object-cover"
-            src="/hero/hero-video.mp4"
-            poster="/hero/hero-poster.jpg"
-            autoPlay
-            muted
-            loop
-            playsInline
-            preload="auto"
-            aria-hidden="true"
-            onError={() => setVideoFailed(true)}
-            onCanPlay={() => videoRef.current?.play().catch(() => undefined)}
+            onError={() => setMediaFailed(true)}
           />
         )}
       </div>
@@ -75,26 +98,26 @@ export default function Hero() {
           className="animate-brand-in mb-5 text-[0.65rem] font-semibold uppercase tracking-[0.55em] text-ice sm:text-xs"
           style={{ animationDelay: "0.25s" }}
         >
-          K-Beauty Skincare
+          {content.eyebrow}
         </p>
         <h1
           className="animate-brand-in brand-title font-display text-[clamp(2.5rem,12.5vw,6rem)] font-medium leading-none tracking-[0.14em] text-white"
           style={{ animationDelay: "0.45s" }}
         >
-          FROSTDEW
+          {content.headline}
         </h1>
         <p
           className="animate-brand-in brand-title mt-5 max-w-md font-display text-lg font-medium italic text-white sm:text-xl"
           style={{ animationDelay: "0.7s" }}
         >
-          Skincare for a Winter-Proof Glow
+          {content.subheadline}
         </p>
         <a
-          href="#shop"
+          href={content.ctaHref}
           className="animate-brand-in mt-9 inline-flex items-center rounded-full border border-white/70 bg-white/15 px-7 py-3 text-sm font-semibold tracking-wide text-white backdrop-blur-md transition-colors hover:bg-white hover:text-winter"
           style={{ animationDelay: "0.95s" }}
         >
-          Shop the collection
+          {content.ctaLabel}
         </a>
       </div>
 
