@@ -1,24 +1,31 @@
 # Admin prototype
 
-The `/admin` area is a **local development tool**, not a production CMS. It reads and writes
-`data/products.json` and `data/settings.json` directly through Node's filesystem API.
+The `/admin` area is a **prototype CMS**, not a finished production admin. Products, site
+settings, and partner links live in **Supabase**; the app reads them at request time and writes
+through server-only API routes that use the secret (service-role) key.
 
 ## Local setup
 
-1. Add credentials to `.env.local` (gitignored):
+1. Create the tables and seed the data (see [`supabase/README.md`](../supabase/README.md)).
+
+2. Add credentials to `.env.local` (gitignored):
 
    ```bash
+   NEXT_PUBLIC_SUPABASE_URL=https://<project-ref>.supabase.co
+   NEXT_PUBLIC_SUPABASE_ANON_KEY=<publishable-or-anon-key>
+   SUPABASE_SERVICE_ROLE_KEY=<secret-or-service-role-key>
+
    ADMIN_PASSWORD=choose-a-local-password
    ADMIN_SESSION_SECRET=some-long-random-value   # optional; falls back to the password
    ```
 
-2. Restart the dev server so Next.js picks up the env file:
+3. Restart the dev server so Next.js picks up the env file:
 
    ```bash
    pnpm dev
    ```
 
-3. Open <http://localhost:3000/admin> and sign in.
+4. Open <http://localhost:3000/admin> and sign in.
 
 If `ADMIN_PASSWORD` is missing, every admin page shows a setup notice and the login API
 returns `503`. There is deliberately no built-in default password.
@@ -27,10 +34,10 @@ returns `503`. There is deliberately no built-in default password.
 
 | Route | Purpose |
 | --- | --- |
-| `/admin` | Table of every product in `data/products.json` |
+| `/admin` | Table of every row in `public.products` |
 | `/admin/add` | Create form |
 | `/admin/edit/[id]` | Edit form (the `id` is immutable) |
-| `/admin/settings` | Content manager (including hero seasons), social media, and partner links stored in `data/settings.json` |
+| `/admin/settings` | Content manager (including hero seasons), social media, and partner links stored in `site_settings` and `partners` |
 | `POST /api/admin/login` | Password → signed session cookie |
 | `POST /api/admin/logout` | Clears the cookie |
 | `GET/POST /api/admin/products` | List / create |
@@ -40,8 +47,12 @@ returns `503`. There is deliberately no built-in default password.
 
 All mutations are validated by the same rules used by `pnpm validate:data`
 (`lib/product-rules.mjs`), so an admin edit cannot silently break store allowlists or
-affiliate tags. Writes go to a temporary file and are renamed into place, so a crash cannot
-leave a half-written JSON file.
+affiliate tags. Public reads use the publishable key through RLS-limited `SELECT`; admin
+writes go through `getSupabaseAdminClient()`, which is server-only.
+
+Product writes are individual row inserts/updates/deletes, not file rewrites, so two admins
+touching different products no longer clobber each other.
+
 
 ## Duplicate products
 
@@ -59,10 +70,15 @@ uniqueness constraint.
 - Inline checks are a convenience; the API repeats the same check and returns **409** with
   `error`, `field` (`name` or `id`), `duplicate`, and `errors`. The form maps that response back
   onto the offending field, so a stale browser tab cannot bypass the rule.
-- `pnpm validate:data` applies the same rule to `data/products.json`. Direct JSON edits that
-  introduce a duplicate brand + name fail validation. There is no Import JSON feature in the
-  admin; if one is added later it must reuse `findDuplicateProduct()` from
-  `lib/product-rules.mjs` and skip or explicitly confirm duplicates before writing.
+- The database enforces the same rule independently: a trigger derives `brand_key` and
+  `name_key` (NFKC, trimmed, whitespace-collapsed, lowercased) on every insert/update, and a
+  unique constraint on `(brand_key, name_key)` rejects races that slip past the API pre-check.
+  The API maps that `23505` conflict back to the same **409** message.
+- `pnpm validate:data` applies the same rule to `data/products.json`, the seed source. Direct
+  JSON edits that introduce a duplicate brand + name fail validation, and both seed paths refuse
+  to run. There is no Import JSON feature in the admin; if one is added later it must reuse
+  `findDuplicateProduct()` from `lib/product-rules.mjs` and skip or explicitly confirm
+  duplicates before writing.
 
 - **Affiliate Links** — the edit form keeps the legacy `url` + `store` pair and adds optional
   Amazon US, Amazon UK, and Stylevana URLs below it. When a store-specific link exists it wins
@@ -100,7 +116,9 @@ Products without `salePrice` render exactly as before.
 
 ## Site settings
 
-`/admin/settings` edits `data/settings.json`, which holds three independent sections:
+`/admin/settings` edits the singleton `site_settings` row plus the ordered `partners` table.
+`social_links` and `content` keep the JSON shapes below; the example shows the shape rather than
+a file on disk:
 
 ```json
 {
@@ -162,9 +180,11 @@ footer tagline, and Contact page intro/response-time copy.
 - The hero CTA link accepts `#anchor`, `/internal-path`, or an `https://` URL; `javascript:` and
   `http://` links are rejected.
 - Missing or invalid fields fall back to the current defaults in `lib/site-content.ts`, so a
-  hand-edited settings file cannot blank out public copy.
-- Each form saves only its own section (`content`, `socialLinks`, or `partners`). The API merges
-  the supplied section into the current file, so saving one never erases the others.
+  hand-edited row cannot blank out public copy.
+- Each form saves only its own section (`content`, `socialLinks`, or `partners`). The API reads
+  the current settings, merges the supplied section, and writes all three through
+  `save_site_settings()`, so saving one section never erases the others and a partner list can
+  never be half-replaced.
 
 ### Hero season media
 
@@ -187,8 +207,8 @@ The **Upload** buttons in the Content Manager and product form call
 
 - Hero and poster files save to `public/uploads/hero/`; product images save to
   `public/uploads/products/`.
-- URLs are returned as `/uploads/hero/…` or `/uploads/products/…` and stored in the JSON
-  settings/product record.
+- URLs are returned as `/uploads/hero/…` or `/uploads/products/…` and stored in the
+  `site_settings`/`products` row.
 - `next start` snapshots `public/` at boot, so newly uploaded files would normally 404 until a
   restart. `app/uploads/[...path]/route.ts` reads `public/uploads/` per request instead, so a
   fresh upload is served immediately.
@@ -202,13 +222,14 @@ The **Upload** buttons in the Content Manager and product form call
   **Save content** or **Save changes**.
 - Files are not deleted automatically if you remove a row or abandon a form. Clean up unused
   files in `public/uploads/` manually.
-- Vercel's filesystem is read-only/ephemeral. These uploads work for the local JSON setup, but
-  production needs object storage.
+- Vercel's filesystem is read-only/ephemeral. Uploads still assume a persistent local disk, so
+  production needs object storage (for example Supabase Storage) even though the catalog lives
+  in the database.
 
 ### Partner links
 
 The **Partner Links** section manages the footer's Partners column. There are no hardcoded
-partner links in the codebase; the entire list lives in `data/settings.json`.
+partner links in the codebase; the entire list lives in the `partners` table.
 
 - Each partner has a name, an absolute `https://` URL, and a "new tab" toggle.
 - The list order is the footer order. Maximum 20 partners; duplicate destinations are rejected.
@@ -217,7 +238,8 @@ partner links in the codebase; the entire list lives in `data/settings.json`.
 - An empty list hides the whole column, and the footer grid collapses back to four columns.
 - `newTab: true` renders `target="_blank"` with `rel="noopener noreferrer"`; `false` opens in the
   same tab.
-- Invalid entries in a hand-edited file are dropped on read rather than rendered as broken links.
+- Invalid entries are dropped on read rather than rendered as broken links. `save_site_settings()`
+  re-inserts the list in submitted order, and `position` stores that order.
 
 ### Social links
 
@@ -229,10 +251,10 @@ partner links in the codebase; the entire list lives in `data/settings.json`.
 - The platform list, labels, order, and icons live in `lib/social-links.ts` and
   `components/social-icon.tsx`. Add a platform there if the set ever grows.
 
-Every public page calls `connection()` and reads the settings file per request, so saving in the
-admin form updates the live site on the next page load — no rebuild required. The homepage also
-reads `data/products.json` per request and passes the result into the shop, so product and gallery
-edits appear immediately as well. This makes the public routes dynamic (`ƒ` in the build output).
+Every public page calls `connection()` and reads Supabase per request, so saving in the admin form
+updates the live site on the next page load — no rebuild required. The homepage also reads
+`public.products` per request and passes the result into the shop, so product and gallery edits
+appear immediately as well. This makes the public routes dynamic (`ƒ` in the build output).
 
 ## Production gating
 
@@ -251,37 +273,33 @@ stays closed by default even if the code is deployed.
 - One shared password, no user accounts, no audit trail.
 - The login throttle is in-memory and per-instance; it is not a real rate limiter.
 - CSRF is mitigated by `SameSite=Lax` plus an origin check, not by tokens.
-- Concurrent editors can overwrite each other (last write wins). Git is the safety net.
-- The public site reads `data/settings.json` and the homepage reads `data/products.json` on every
-  request, so content, social-link, product, and gallery edits appear without a rebuild.
-- The JSON store and `public/uploads/` assume a persistent writable disk. Vercel's filesystem is
-  read-only/ephemeral, so `data/products.json`, `data/settings.json`, and uploaded media need a
-  database or blob store there.
+- Concurrent editors can overwrite each other on the settings row (last write wins). Product
+  writes are per row, so edits to different products are independent.
+- The public site reads `site_settings` and `partners`, and the homepage reads `products`, on
+  every request, so content, social-link, product, and gallery edits appear without a rebuild.
+- `public/uploads/` assumes a persistent writable disk. Vercel's filesystem is read-only/ephemeral,
+  so uploaded media needs object storage there even though the catalog is in Supabase.
+- The service-role key bypasses RLS. It is only imported by `lib/supabase.ts`, which is marked
+  `server-only`; never expose it with a `NEXT_PUBLIC_` prefix.
 
-## Replacing the JSON store with a real backend
+## Data layer
 
-1. Keep the API contract (`/api/admin/products`, `/api/admin/settings`) or move the same
-   handlers to server actions.
-2. Replace the three functions in `lib/admin/products-store.ts`:
+The JSON files are now seed sources only. Runtime reads and writes go through Supabase:
 
-   ```ts
-   readProducts()
-   writeProducts(next)
-   productIndexById(products, id)
-   ```
+- `lib/admin/products-store.ts` — `readProducts()`, `createProduct()`, `updateProduct()`,
+  `deleteProduct()`, `productIndexById()`. Reads use the public client, writes the admin client.
+- `lib/site-settings.ts` — `readSiteSettings()` (fail-soft, one query per table) and
+  `writeSiteSettings()` (single `save_site_settings()` RPC).
+- `lib/product-row.mjs` — camelCase app shape ↔ snake_case table row, shared with the seeders.
+- `lib/supabase.ts` — client factories and configuration errors.
+- `supabase/schema.sql`, `supabase/migrations/`, `supabase/seed.sql` — database setup.
 
-   and the two functions in `lib/site-settings.ts`:
+Remaining work before this is production-ready:
 
-   ```ts
-   readSiteSettings()
-   writeSiteSettings(settings)
-   ```
-
-   with database queries. Nothing else imports the filesystem directly.
-3. Keep calling `validateProductRecord` from `lib/product-rules.mjs` in the write path.
-4. Replace the shared-password check in `lib/admin/auth.ts` with your identity provider.
-5. Remove `ADMIN_ALLOW_WRITES` and the filesystem-specific 501 response once writes are durable.
-6. Consider optimistic concurrency (an `updatedAt` or version column) before allowing multiple
-   editors.
-
-When that is done, delete this note's "prototype" banner in `app/admin/layout.tsx`.
+1. Replace the shared-password check in `lib/admin/auth.ts` with Supabase Auth (or another
+   identity provider) and restrict writes by role.
+2. Move uploads to Supabase Storage or another object store.
+3. Add optimistic concurrency (an `updated_at` check) if multiple editors will touch the settings
+   row at once.
+4. Decide whether `ADMIN_ALLOW_WRITES` should survive; it currently gates writes in production
+   even though the database is durable.

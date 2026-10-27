@@ -2,7 +2,7 @@
  * Presentation helpers shared by the storefront and the admin prototype.
  *
  * This module deliberately imports no product data, so client components can
- * format values without pulling the whole products.json bundle into the browser.
+ * format values without pulling the whole catalog into the browser.
  */
 
 const countFormatter = new Intl.NumberFormat("en-US")

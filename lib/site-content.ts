@@ -1,5 +1,5 @@
 /**
- * Editable site copy stored in data/settings.json under `content`.
+ * Editable site copy stored in the `site_settings` table under `content`.
  * This module is shared by the admin form, the API, and server components,
  * so the same defaults and validation rules apply everywhere.
  */

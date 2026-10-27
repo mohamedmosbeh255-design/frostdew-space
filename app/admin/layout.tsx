@@ -47,11 +47,13 @@ export default async function AdminLayout({ children }: { children: React.ReactN
           role="note"
           className="rounded-xl border border-amber-cta/50 bg-amber-cta/10 px-4 py-3 text-xs leading-relaxed text-midnight"
         >
-          <strong>Development / prototype.</strong> Changes are written straight to{" "}
-          <code className="rounded bg-white/70 px-1">data/products.json</code> and{" "}
-          <code className="rounded bg-white/70 px-1">data/settings.json</code> on this machine.
-          There is no database, audit log, or multi-user access control here. Production should
-          connect to a real backend — see <code className="rounded bg-white/70 px-1">docs/admin.md</code>.
+          <strong>Prototype.</strong> Changes are written to Supabase tables{" "}
+          <code className="rounded bg-white/70 px-1">products</code>,{" "}
+          <code className="rounded bg-white/70 px-1">site_settings</code>, and{" "}
+          <code className="rounded bg-white/70 px-1">partners</code>. Admin writes use the
+          server-only service-role key; public reads are RLS-limited. Uploaded media is still
+          stored on this machine&apos;s filesystem — see{" "}
+          <code className="rounded bg-white/70 px-1">docs/admin.md</code>.
         </p>
       </div>
 

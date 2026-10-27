@@ -18,8 +18,9 @@ export default async function AdminSettingsPage() {
         <h1 className="font-display text-2xl text-midnight">Site settings</h1>
         <p className="text-sm text-muted-foreground">
           Manage public copy, social links, and partner stores stored in{" "}
-          <code className="rounded bg-white/70 px-1">data/settings.json</code>. Saving one
-          section leaves the others untouched.
+          <code className="rounded bg-white/70 px-1">site_settings</code> and{" "}
+          <code className="rounded bg-white/70 px-1">partners</code>. Saving one section leaves
+          the others untouched.
         </p>
       </div>
 

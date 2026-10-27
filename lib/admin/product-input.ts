@@ -10,7 +10,7 @@ const OPTIONAL_FIELDS = ["price", "salePrice", "rating", "reviewCount", "addedDa
 
 /**
  * Whitelists incoming form fields so arbitrary JSON can never add unexpected keys
- * to products.json. Type checks are left to the shared validator.
+ * to a product row. Type checks are left to the shared validator.
  */
 export function normalizeProductInput(body: unknown): Product {
   if (!isRecord(body)) throw new InvalidInputError("Request body must be a JSON object.")

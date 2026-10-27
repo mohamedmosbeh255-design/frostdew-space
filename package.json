@@ -7,9 +7,12 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "validate:data": "node scripts/validate-products.mjs"
+    "validate:data": "node scripts/validate-products.mjs",
+    "seed:supabase": "node --env-file=.env.local scripts/seed-supabase.mjs",
+    "seed:sql": "node scripts/generate-seed-sql.mjs"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.118.0",
     "@vercel/analytics": "1.6.1",
     "clsx": "^2.1.1",
     "lucide-react": "^1.16.0",

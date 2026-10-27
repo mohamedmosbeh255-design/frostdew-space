@@ -1,5 +1,5 @@
 /**
- * Editable partner store links stored in data/settings.json under `partners`.
+ * Editable partner store links stored in the `partners` table.
  * Shared by the admin form, the API, and the footer.
  */
 

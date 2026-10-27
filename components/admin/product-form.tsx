@@ -541,7 +541,7 @@ export default function ProductForm({
           </h1>
           <p className="text-sm text-muted-foreground">
             {mode === "create"
-              ? "Creates a new record in data/products.json."
+              ? "Creates a new record in Supabase."
               : `Editing ${initial?.id}. The id cannot be changed.`}
           </p>
         </div>

@@ -2,10 +2,11 @@ import { NextResponse } from "next/server"
 import { guardRead, guardWrite } from "@/lib/admin/api-guard"
 import { InvalidInputError, normalizeProductInput } from "@/lib/admin/product-input"
 import {
+  ProductConflictError,
   ProductStoreError,
+  createProduct,
   productIndexById,
   readProducts,
-  writeProducts,
 } from "@/lib/admin/products-store"
 import { findDuplicateProduct, validateProductRecord } from "@/lib/product-rules.mjs"
 
@@ -82,11 +83,21 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Validation failed.", errors, warnings }, { status: 400 })
     }
 
-    products.push(candidate)
-    await writeProducts(products)
+    await createProduct(candidate)
 
     return NextResponse.json({ ok: true, product: candidate, warnings }, { status: 201 })
   } catch (error) {
+    if (error instanceof ProductConflictError) {
+      return NextResponse.json(
+        {
+          error: error.message,
+          field: error.field,
+          errors: [error.message],
+        },
+        { status: 409 },
+      )
+    }
+
     const message =
       error instanceof ProductStoreError ? error.message : "Unable to save the product."
     return NextResponse.json({ error: message }, { status: 500 })

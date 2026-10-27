@@ -17,7 +17,7 @@ export default async function AdminProductsPage() {
         <div>
           <h1 className="font-display text-2xl text-midnight">Products</h1>
           <p className="text-sm text-muted-foreground">
-            {products.length} records in data/products.json
+            {products.length} records in Supabase
           </p>
         </div>
         <Link

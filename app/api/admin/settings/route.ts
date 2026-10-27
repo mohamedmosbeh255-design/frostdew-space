@@ -53,8 +53,19 @@ export async function PUT(request: Request) {
     )
   }
 
-  // Merge into the current file so saving one section never erases the other.
-  const current = await readSiteSettings()
+  // Merge into the current settings so saving one section never erases another.
+  // This read is strict: a failure returns 500 instead of merging into defaults,
+  // which would blank out the sections the admin did not submit.
+  let current: SiteSettings
+  try {
+    current = await readSiteSettings({ strict: true })
+  } catch {
+    return NextResponse.json(
+      { error: "Unable to read the current settings. Nothing was saved." },
+      { status: 500 },
+    )
+  }
+
   const next: SiteSettings = { ...current }
   const errors: Record<string, string> = {}
 

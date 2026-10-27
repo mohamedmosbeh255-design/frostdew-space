@@ -30,4 +30,4 @@ export const LEGAL_LINKS = [
 ] as const
 
 // Social links and partner stores are user-managed at runtime in
-// data/settings.json, editable from /admin/settings.
+// Supabase, editable from /admin/settings.

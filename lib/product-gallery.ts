@@ -5,7 +5,7 @@ import type { Product } from "@/lib/products"
  * The main `image` is always first; `images` adds optional extras.
  *
  * This module intentionally imports only the Product type, so client
- * components do not pull the full products.json bundle into their chunk.
+ * components do not pull the full catalog into their chunk.
  */
 export function getProductGallery(product: Product): string[] {
   const sources = [product.image, ...(Array.isArray(product.images) ? product.images : [])]

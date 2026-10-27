@@ -1,6 +1,6 @@
 /**
  * Three saved hero-media slots. One slot is live at a time; the others stay in
- * data/settings.json so seasonal switching does not require re-uploading.
+ * the `site_settings` table so seasonal switching does not require re-uploading.
  */
 
 import { isValidMediaSource } from "@/lib/media-source.mjs"

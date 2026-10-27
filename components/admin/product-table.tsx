@@ -19,7 +19,7 @@ export default function ProductTable({ products }: { products: Product[] }) {
 
   async function handleDelete(product: Product) {
     const confirmed = window.confirm(
-      `Delete "${product.brand} ${product.name}"?\n\nThis removes it from data/products.json.`,
+      `Delete "${product.brand} ${product.name}"?\n\nThis removes it from Supabase.`,
     )
     if (!confirmed) return
 
@@ -56,7 +56,7 @@ export default function ProductTable({ products }: { products: Product[] }) {
       <div className="overflow-x-auto rounded-2xl border border-border bg-card">
         <table className="w-full min-w-[64rem] border-collapse text-left text-sm">
           <caption className="sr-only">
-            All products in data/products.json with links to edit or delete each record
+            All products in Supabase with links to edit or delete each record
           </caption>
           <thead className="bg-muted/60 text-xs uppercase tracking-wide text-muted-foreground">
             <tr>

@@ -12,8 +12,8 @@ const linkClass =
 export default async function SiteFooter() {
   const year = new Date().getFullYear()
 
-  // Opt into request-time rendering so admin edits to data/settings.json appear
-  // immediately instead of being frozen into the build output.
+  // Opt into request-time rendering so admin settings edits appear immediately
+  // instead of being frozen into the build output.
   await connection()
   const { socialLinks, content, partners } = await readSiteSettings()
   const visibleSocials = SOCIAL_PLATFORMS.filter(
