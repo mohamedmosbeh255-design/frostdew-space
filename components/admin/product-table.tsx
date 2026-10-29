@@ -54,10 +54,25 @@ export default function ProductTable({ products }: { products: Product[] }) {
       )}
 
       <div className="overflow-x-auto rounded-2xl border border-border bg-card">
-        <table className="w-full min-w-[64rem] border-collapse text-left text-sm">
+        {/* table-fixed keeps every column inside the card, so the Actions
+            column can never be pushed out of view. Long ids and names are
+            truncated instead of widening the table. */}
+        <table className="w-full min-w-[48rem] table-fixed border-collapse text-left text-sm">
           <caption className="sr-only">
             All products in Supabase with links to edit or delete each record
           </caption>
+          <colgroup>
+            <col className="w-[13%]" />
+            <col className="w-[9%]" />
+            <col className="w-[22%]" />
+            <col className="w-[8%]" />
+            <col className="w-[7%]" />
+            <col className="w-[6%]" />
+            <col className="w-[8%]" />
+            <col className="w-[8%]" />
+            <col className="w-[6%]" />
+            <col className="w-[13%]" />
+          </colgroup>
           <thead className="bg-muted/60 text-xs uppercase tracking-wide text-muted-foreground">
             <tr>
               <th scope="col" className="px-3 py-2 font-semibold">ID</th>
@@ -69,27 +84,54 @@ export default function ProductTable({ products }: { products: Product[] }) {
               <th scope="col" className="px-3 py-2 font-semibold">Reviews</th>
               <th scope="col" className="px-3 py-2 font-semibold">Added</th>
               <th scope="col" className="px-3 py-2 font-semibold">Related</th>
-              <th scope="col" className="px-3 py-2 text-right font-semibold">Actions</th>
+              {/* Sticky so Edit/Delete stay reachable when narrower screens scroll the table. */}
+              <th
+                scope="col"
+                className="sticky right-0 z-10 border-l border-border bg-muted px-3 py-2 text-right font-semibold"
+              >
+                Actions
+              </th>
             </tr>
           </thead>
           <tbody>
             {products.map((product) => (
               <tr key={product.id} className="border-t border-border align-top">
                 <td className="px-3 py-2">
-                  <span className="font-mono text-xs text-muted-foreground">{product.id}</span>
+                  <span
+                    title={product.id}
+                    className="block truncate font-mono text-xs text-muted-foreground"
+                  >
+                    {product.id}
+                  </span>
                 </td>
-                <td className="px-3 py-2 font-semibold text-midnight">{product.brand}</td>
-                <td className="px-3 py-2 text-midnight">{product.name}</td>
-                <td className="px-3 py-2">{storeLabel(product.store)}</td>
-                <td className="px-3 py-2">{product.price ? formatPrice(product.price) : "—"}</td>
-                <td className="px-3 py-2">
+                <td className="px-3 py-2 font-semibold text-midnight">
+                  <span className="block overflow-hidden text-ellipsis">{product.brand}</span>
+                </td>
+                <td className="px-3 py-2 text-midnight">
+                  <span title={product.name} className="line-clamp-2">
+                    {product.name}
+                  </span>
+                </td>
+                <td className="whitespace-nowrap px-3 py-2">{storeLabel(product.store)}</td>
+                <td className="whitespace-nowrap px-3 py-2">
+                  {product.price ? formatPrice(product.price) : "—"}
+                </td>
+                <td className="whitespace-nowrap px-3 py-2 tabular-nums">
                   {product.rating !== undefined ? formatRating(product.rating) : "—"}
                 </td>
-                <td className="px-3 py-2">
+                <td className="whitespace-nowrap px-3 py-2 tabular-nums">
                   {product.reviewCount !== undefined ? formatNumber(product.reviewCount) : "—"}
                 </td>
-                <td className="px-3 py-2">
-                  {product.addedDate ? (formatAddedDate(product.addedDate) ?? product.addedDate) : "—"}
+                <td className="whitespace-nowrap px-3 py-2 tabular-nums">
+                  {/* Month + year only, e.g. "Oct 2026" (lib/format.ts). */}
+                  {product.addedDate ? (
+                    (() => {
+                      const label = formatAddedDate(product.addedDate) ?? product.addedDate
+                      return <time dateTime={product.addedDate}>{label}</time>
+                    })()
+                  ) : (
+                    "—"
+                  )}
                 </td>
                 <td className="px-3 py-2">
                   {product.relatedProducts && product.relatedProducts.length > 0 ? (
@@ -103,11 +145,11 @@ export default function ProductTable({ products }: { products: Product[] }) {
                     "—"
                   )}
                 </td>
-                <td className="px-3 py-2">
-                  <div className="flex justify-end gap-2">
+                <td className="sticky right-0 border-l border-border bg-card px-3 py-2">
+                  <div className="flex flex-wrap justify-end gap-2">
                     <Link
                       href={`/admin/edit/${encodeURIComponent(product.id)}`}
-                      className="rounded-full border border-border px-3 py-1 text-xs font-semibold text-winter transition-colors hover:bg-ice"
+                      className="whitespace-nowrap rounded-full border border-border px-3 py-1 text-xs font-semibold text-winter transition-colors hover:bg-ice"
                     >
                       Edit
                     </Link>
@@ -116,7 +158,7 @@ export default function ProductTable({ products }: { products: Product[] }) {
                       onClick={() => handleDelete(product)}
                       disabled={deletingId === product.id}
                       aria-label={`Delete ${product.brand} ${product.name}`}
-                      className="rounded-full border border-destructive/40 px-3 py-1 text-xs font-semibold text-destructive transition-colors hover:bg-destructive/10 disabled:opacity-60"
+                      className="whitespace-nowrap rounded-full border border-destructive/40 px-3 py-1 text-xs font-semibold text-destructive transition-colors hover:bg-destructive/10 disabled:opacity-60"
                     >
                       {deletingId === product.id ? "Deleting…" : "Delete"}
                     </button>

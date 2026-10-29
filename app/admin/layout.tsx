@@ -56,7 +56,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
         </div>
       </header>
 
-      <div className="mx-auto flex w-full max-w-7xl gap-6 px-4 py-6 sm:px-6">
+      <div className="mx-auto flex w-full max-w-[90rem] gap-6 px-4 py-6 sm:px-6">
         {authenticated && (
           <aside className="sticky top-24 hidden h-fit w-56 shrink-0 lg:block">
             <div className="rounded-3xl border border-white/70 bg-white/65 p-3 shadow-lg shadow-winter/5 backdrop-blur-xl">
