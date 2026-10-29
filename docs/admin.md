@@ -115,6 +115,13 @@ strictly lower; `price` must also be present. Product cards and the detail dialo
 sale price prominently, the regular price struck through beside it, and a rounded `-X%` pill.
 Products without `salePrice` render exactly as before.
 
+## Added date
+
+`addedDate` stores a full calendar date (`YYYY-MM-DD`). The Add product form pre-fills it with
+today's date, and `createProduct()` stamps today's date when a create request omits it, so new
+records are dated automatically without touching the field. The products table and the
+storefront show only the month and year (`Oct 2026`).
+
 ## Site settings
 
 `/admin/settings` edits the singleton `site_settings` row plus the ordered `partners` table.

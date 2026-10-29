@@ -83,9 +83,9 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Validation failed.", errors, warnings }, { status: 400 })
     }
 
-    await createProduct(candidate)
+    const saved = await createProduct(candidate)
 
-    return NextResponse.json({ ok: true, product: candidate, warnings }, { status: 201 })
+    return NextResponse.json({ ok: true, product: saved, warnings }, { status: 201 })
   } catch (error) {
     if (error instanceof ProductConflictError) {
       return NextResponse.json(

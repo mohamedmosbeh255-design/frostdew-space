@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { useRouter } from "next/navigation"
 import { ChevronDown, Plus, Trash2 } from "lucide-react"
 import {
@@ -16,7 +16,7 @@ import {
 } from "@/lib/product-rules.mjs"
 import { mediaSourceKey } from "@/lib/media-source.mjs"
 import type { Product } from "@/lib/products"
-import { parsePrice } from "@/lib/format"
+import { parsePrice, todayIsoDate } from "@/lib/format"
 import {
   STORE_LINK_META,
   STORE_LINK_ORDER,
@@ -326,6 +326,15 @@ export default function ProductForm({
 }) {
   const router = useRouter()
   const [values, setValues] = useState<FormState>(() => toInitialState(initial))
+
+  // New products are stamped with today's date by default. Done after mount so
+  // the client's calendar day is used (and so server/client markup matches).
+  useEffect(() => {
+    if (mode !== "create" || initial) return
+    setValues((current) =>
+      current.addedDate ? current : { ...current, addedDate: todayIsoDate() },
+    )
+  }, [mode, initial])
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [serverErrors, setServerErrors] = useState<string[]>([])
   const [message, setMessage] = useState<string | null>(null)
@@ -877,11 +886,12 @@ export default function ProductForm({
           />
           <TextField
             id="addedDate"
-            label="Added date (optional)"
+            label="Added date"
             value={values.addedDate}
             onChange={(value) => update("addedDate", value)}
             error={errors.addedDate}
             type="date"
+            hint="Defaults to today. Stored as a full date; the table shows month and year."
           />
         </div>
 

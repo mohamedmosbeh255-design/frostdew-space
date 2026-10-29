@@ -60,8 +60,15 @@ export async function readProducts(): Promise<Product[]> {
 }
 
 /** Inserts a product at the end of the catalog order. Admin only. */
-export async function createProduct(product: Product): Promise<void> {
+export async function createProduct(input: Product): Promise<Product> {
   const admin = getSupabaseAdminClient()
+
+  // Every new product is stamped with today's date unless the caller supplied
+  // one. UTC keeps the value stable regardless of the function's region.
+  const product: Product = {
+    ...input,
+    addedDate: input.addedDate ?? new Date().toISOString().slice(0, 10),
+  }
 
   const { data: last, error: orderError } = await admin
     .from("products")
@@ -80,6 +87,9 @@ export async function createProduct(product: Product): Promise<void> {
     if (conflict) throw conflict
     throw storeError("Unable to save the product.", error)
   }
+
+  // Returned so the API echoes the stored shape, including the defaulted date.
+  return product
 }
 
 /** Updates an existing product without changing its catalog position. Admin only. */

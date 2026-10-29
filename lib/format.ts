@@ -62,6 +62,18 @@ export function storeLabel(store: string): string {
   return STORE_LABELS[store] ?? store
 }
 
+/**
+ * Today's calendar date as `YYYY-MM-DD`, the format `addedDate` stores.
+ * Uses local time when called in the browser so "today" matches the user's
+ * clock rather than the server's UTC day.
+ */
+export function todayIsoDate(now: Date = new Date()): string {
+  const year = now.getFullYear()
+  const month = String(now.getMonth() + 1).padStart(2, "0")
+  const day = String(now.getDate()).padStart(2, "0")
+  return `${year}-${month}-${day}`
+}
+
 export function formatAddedDate(iso: string): string | null {
   const date = new Date(`${iso}T00:00:00Z`)
   if (Number.isNaN(date.getTime())) return null
