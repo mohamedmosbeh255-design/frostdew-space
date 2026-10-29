@@ -186,7 +186,9 @@ begin
     set social_links = excluded.social_links,
         content = excluded.content;
 
-  delete from public.partners;
+  -- `where true` satisfies Supabase's safe-update guard, which rejects an
+  -- unqualified DELETE even inside a SECURITY DEFINER function.
+  delete from public.partners where true;
 
   insert into public.partners (name, url, new_tab, position)
   select
