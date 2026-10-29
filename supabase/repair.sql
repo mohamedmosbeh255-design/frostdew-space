@@ -16,41 +16,37 @@ begin;
 -- 1. Duplicate protection
 -- ---------------------------------------------------------------------------
 
-alter table public.products add column if not exists brand_key text;
-alter table public.products add column if not exists name_key text;
+-- Older sessions may have created a unique index under the constraint name
+-- (built on lower(btrim(brand)) / lower(btrim(name))). Clear both forms first.
+alter table public.products drop constraint if exists products_brand_name_unique;
+drop index if exists public.products_brand_name_unique;
+alter table public.products drop constraint if exists products_brand_name_not_empty;
 
-create or replace function public.set_product_duplicate_keys()
-returns trigger
-language plpgsql
-set search_path = public
-as $$
-begin
-  new.brand_key := lower(
-    btrim(regexp_replace(normalize(new.brand, NFKC), '[[:space:]]+', ' ', 'g'))
-  );
-  new.name_key := lower(
-    btrim(regexp_replace(normalize(new.name, NFKC), '[[:space:]]+', ' ', 'g'))
-  );
-  return new;
-end;
-$$;
-
+-- Leftovers from the trigger-based attempt.
 drop trigger if exists products_set_duplicate_keys on public.products;
-create trigger products_set_duplicate_keys
-before insert or update of brand, name on public.products
-for each row execute function public.set_product_duplicate_keys();
+drop function if exists public.set_product_duplicate_keys();
 
--- Fills brand_key/name_key for the rows that predate the trigger.
-update public.products set brand = brand where brand_key is null or name_key is null;
+-- Replace the plain key columns with stored generated columns, so they can
+-- never drift from brand/name. Dropping a column also drops dependants.
+alter table public.products drop column if exists brand_key;
+alter table public.products drop column if exists name_key;
+
+-- Same normalization as normalizeProductBrand()/normalizeProductName() in
+-- lib/product-rules.mjs: NFKC, trim, collapse inner whitespace, lowercase.
+alter table public.products
+  add column brand_key text generated always as (
+    lower(btrim(regexp_replace(normalize(coalesce(brand, ''), NFKC), '[[:space:]]+', ' ', 'g')))
+  ) stored,
+  add column name_key text generated always as (
+    lower(btrim(regexp_replace(normalize(coalesce(name, ''), NFKC), '[[:space:]]+', ' ', 'g')))
+  ) stored;
 
 alter table public.products alter column brand_key set not null;
 alter table public.products alter column name_key set not null;
 
-alter table public.products drop constraint if exists products_brand_name_unique;
 alter table public.products add constraint products_brand_name_unique
   unique (brand_key, name_key);
 
-alter table public.products drop constraint if exists products_brand_name_not_empty;
 alter table public.products add constraint products_brand_name_not_empty
   check (brand_key <> '' and name_key <> '');
 

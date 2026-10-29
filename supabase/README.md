@@ -26,8 +26,9 @@ The schema creates:
 
 It also adds:
 
-- A `brand_key + name_key` unique constraint that mirrors the app’s
-  NFKC/trim/whitespace/lowercase duplicate rule, derived by a trigger.
+- `brand_key + name_key` stored generated columns plus a unique constraint that
+  mirrors the app’s NFKC/trim/whitespace/lowercase duplicate rule. Because the
+  keys are generated, they cannot drift from `brand`/`name` (no trigger needed).
 - `updated_at` triggers on all three tables.
 - `sort_order` plus an index for the product display order.
 - RLS policies that allow public `SELECT` only.

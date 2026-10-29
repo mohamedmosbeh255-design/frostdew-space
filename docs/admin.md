@@ -70,9 +70,10 @@ uniqueness constraint.
 - Inline checks are a convenience; the API repeats the same check and returns **409** with
   `error`, `field` (`name` or `id`), `duplicate`, and `errors`. The form maps that response back
   onto the offending field, so a stale browser tab cannot bypass the rule.
-- The database enforces the same rule independently: a trigger derives `brand_key` and
-  `name_key` (NFKC, trimmed, whitespace-collapsed, lowercased) on every insert/update, and a
-  unique constraint on `(brand_key, name_key)` rejects races that slip past the API pre-check.
+- The database enforces the same rule independently: `brand_key` and `name_key` are stored
+  generated columns (NFKC, trimmed, whitespace-collapsed, lowercased), so every insert/update
+  derives them, and a unique constraint on `(brand_key, name_key)` rejects races that slip
+  past the API pre-check.
   The API maps that `23505` conflict back to the same **409** message.
 - `pnpm validate:data` applies the same rule to `data/products.json`, the seed source. Direct
   JSON edits that introduce a duplicate brand + name fail validation, and both seed paths refuse

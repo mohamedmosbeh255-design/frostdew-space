@@ -55,8 +55,12 @@ create table if not exists public.products (
   affiliate_links    jsonb not null default '{}'::jsonb
                        check (jsonb_typeof(affiliate_links) = 'object'),
   related_products   text[] not null default '{}'::text[],
-  brand_key          text not null,
-  name_key           text not null,
+  brand_key          text generated always as (
+                       lower(btrim(regexp_replace(normalize(brand, NFKC), '[[:space:]]+', ' ', 'g')))
+                     ) stored,
+  name_key           text generated always as (
+                       lower(btrim(regexp_replace(normalize(name, NFKC), '[[:space:]]+', ' ', 'g')))
+                     ) stored,
   created_at         timestamptz not null default now(),
   updated_at         timestamptz not null default now(),
   constraint products_brand_name_not_empty
@@ -66,35 +70,14 @@ create table if not exists public.products (
 );
 
 comment on table public.products is
-  'FrostDew catalog. brand_key + name_key mirror lib/product-rules.mjs normalization.';
+  'FrostDew catalog. brand_key + name_key are generated from brand/name using the same normalization as lib/product-rules.mjs.';
 comment on column public.products.affiliate_links is
   'Optional store links: {"amazonUs": "...", "amazonUk": "...", "stylevana": "..."}';
 
-/**
- * Mirrors normalizeProductBrand()/normalizeProductName() in lib/product-rules.mjs:
- * NFKC, trim, collapse whitespace, lowercase. The composite key is what makes
- * brand + name unique without merging punctuation or size variants.
- */
-create or replace function public.set_product_duplicate_keys()
-returns trigger
-language plpgsql
-set search_path = public
-as $$
-begin
-  new.brand_key := lower(
-    btrim(regexp_replace(normalize(new.brand, NFKC), '[[:space:]]+', ' ', 'g'))
-  );
-  new.name_key := lower(
-    btrim(regexp_replace(normalize(new.name, NFKC), '[[:space:]]+', ' ', 'g'))
-  );
-  return new;
-end;
-$$;
+-- brand_key/name_key are stored generated columns: NFKC, collapse whitespace,
+-- lowercase — the same normalization as lib/product-rules.mjs. Because they are
+-- generated they can never drift from brand/name, so no trigger is needed.
 
-drop trigger if exists products_set_duplicate_keys on public.products;
-create trigger products_set_duplicate_keys
-before insert or update of brand, name on public.products
-for each row execute function public.set_product_duplicate_keys();
 
 drop trigger if exists products_set_updated_at on public.products;
 create trigger products_set_updated_at
