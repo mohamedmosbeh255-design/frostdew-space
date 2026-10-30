@@ -6,41 +6,22 @@ import { ArrowLeft, Check } from "lucide-react"
 import PageShell from "@/components/page-shell"
 import ProductGallery from "@/components/product-gallery"
 import { BuyLink, PriceTag, ProductImage, Rating } from "@/components/product-card"
-import { formatAddedDateFull, parsePrice, storeLabel } from "@/lib/format"
+import { formatAddedDateFull } from "@/lib/format"
 import { getProductBySlug, readCatalog } from "@/lib/product-catalog"
 import { CATEGORIES, type Product } from "@/lib/products"
+import { generateProductSchema, productImageUrls } from "@/lib/seo/product-schema"
 import { AFFILIATE_PROXIMITY_NOTE, SITE_URL } from "@/lib/site"
 
 type Props = {
   params: Promise<{ slug: string }>
 }
 
-/** Maps the symbols the price validator accepts to ISO 4217 codes. */
-const CURRENCY_CODES: Record<string, string> = {
-  $: "USD",
-  "£": "GBP",
-  "€": "EUR",
-  "¥": "JPY",
-  "₩": "KRW",
-  "₹": "INR",
-}
-
 const MAX_RELATED = 4
-
-/** Absolute URL for metadata/JSON-LD, which require full image URLs. */
-function absoluteImage(url: string): string {
-  if (/^https?:\/\//i.test(url)) return url
-  return `${SITE_URL}${url.startsWith("/") ? "" : "/"}${url}`
-}
 
 /** Meta descriptions should be unique and short; `short` is written for this. */
 function metaDescription(product: Product): string {
   const text = (product.short || product.description).trim()
   return text.length > 160 ? `${text.slice(0, 157).trimEnd()}…` : text
-}
-
-function productImages(product: Product): string[] {
-  return [...new Set([product.image, ...(product.images ?? [])].filter(Boolean))]
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -58,8 +39,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   }
 
   const description = metaDescription(product)
-  const images = productImages(product).map((url) => ({
-    url: absoluteImage(url),
+  const images = productImageUrls(product, SITE_URL).map((url) => ({
+    url,
     alt: `${product.brand} ${product.name}`,
   }))
 
@@ -129,43 +110,6 @@ export default async function ProductPage({ params }: Props) {
   const catalog = await readCatalog()
   const related = relatedProducts(product, catalog)
   const addedLabel = product.addedDate ? formatAddedDateFull(product.addedDate) : null
-  const images = productImages(product).map(absoluteImage)
-
-  const offer = parsePrice(product.salePrice ?? product.price ?? "")
-  const currency = offer ? CURRENCY_CODES[offer.currency] : undefined
-
-  const jsonLd: Record<string, unknown> = {
-    "@context": "https://schema.org",
-    "@type": "Product",
-    name: product.fullName,
-    description: product.description,
-    image: images,
-    brand: { "@type": "Brand", name: product.brand },
-    sku: product.id,
-    url: `${SITE_URL}/products/${product.id}`,
-  }
-
-  if (product.categories.length > 0) jsonLd.category = product.categories[0]
-
-  if (offer && currency) {
-    jsonLd.offers = {
-      "@type": "Offer",
-      url: product.url,
-      priceCurrency: currency,
-      price: offer.amount,
-      availability: "https://schema.org/InStock",
-      seller: { "@type": "Organization", name: storeLabel(product.store) },
-    }
-  }
-
-  // Aggregate ratings need both the score and the number of reviews.
-  if (product.rating !== undefined && product.reviewCount !== undefined) {
-    jsonLd.aggregateRating = {
-      "@type": "AggregateRating",
-      ratingValue: product.rating,
-      reviewCount: product.reviewCount,
-    }
-  }
 
   const categoryLabels = product.categories.map(
     (category) => CATEGORIES.find((entry) => entry.id === category)?.label ?? category,
@@ -175,9 +119,7 @@ export default async function ProductPage({ params }: Props) {
     <PageShell>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c"),
-        }}
+        dangerouslySetInnerHTML={{ __html: generateProductSchema(product, SITE_URL) }}
       />
 
       <div className="relative isolate overflow-hidden">
