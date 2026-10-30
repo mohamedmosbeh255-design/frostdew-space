@@ -1,5 +1,6 @@
 "use client"
 
+import Link from "next/link"
 import { useState } from "react"
 import { ExternalLink, Star } from "lucide-react"
 import {
@@ -187,8 +188,14 @@ export default function ProductCard({
           )}
         </div>
       </button>
-      <div className="mt-auto px-5 pb-5">
+      <div className="mt-auto flex flex-col gap-2 px-5 pb-5">
         <BuyLink product={product} className="w-full" />
+        <Link
+          href={`/products/${product.id}`}
+          className="text-center text-xs font-semibold text-winter underline decoration-frost underline-offset-2 transition-colors hover:text-midnight"
+        >
+          Full product details
+        </Link>
       </div>
     </article>
   )

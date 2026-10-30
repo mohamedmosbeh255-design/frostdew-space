@@ -1,4 +1,6 @@
 import type { MetadataRoute } from "next"
+import { connection } from "next/server"
+import { readCatalog } from "@/lib/product-catalog"
 import { SITE_URL } from "@/lib/site"
 
 const ROUTES: Array<{
@@ -14,13 +16,24 @@ const ROUTES: Array<{
   { path: "/terms", changeFrequency: "yearly", priority: 0.4 },
 ]
 
-export default function sitemap(): MetadataRoute.Sitemap {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  // Products are edited in Supabase at runtime, so build the sitemap per request.
+  await connection()
+  const products = await readCatalog()
   const lastModified = new Date()
 
-  return ROUTES.map((route) => ({
-    url: `${SITE_URL}${route.path}`,
-    lastModified,
-    changeFrequency: route.changeFrequency,
-    priority: route.priority,
-  }))
+  return [
+    ...ROUTES.map((route) => ({
+      url: `${SITE_URL}${route.path}`,
+      lastModified,
+      changeFrequency: route.changeFrequency,
+      priority: route.priority,
+    })),
+    ...products.map((product) => ({
+      url: `${SITE_URL}/products/${product.id}`,
+      lastModified,
+      changeFrequency: "weekly" as const,
+      priority: 0.8,
+    })),
+  ]
 }

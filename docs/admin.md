@@ -292,6 +292,24 @@ stays closed by default even if the code is deployed.
 - The service-role key bypasses RLS. It is only imported by `lib/supabase.ts`, which is marked
   `server-only`; never expose it with a `NEXT_PUBLIC_` prefix.
 
+## Product pages and SEO
+
+Each product has a crawlable detail page at `/products/<id>` (`app/products/[slug]/page.tsx`).
+The id is already URL-safe, so there is no separate slug column. The page:
+
+- resolves the product through `lib/product-catalog.ts`, which caches one Supabase read per
+  request so `generateMetadata()` and the page body do not query twice;
+- emits per-product title, description, keywords, canonical URL, Open Graph, and Twitter metadata;
+- adds `Product` JSON-LD (brand, sku, image, offer price/currency/availability, aggregate rating
+  when both a rating and review count exist) — Next's Metadata type has no `product` Open Graph
+  type or `priceRange` field, so structured data is the correct place for those;
+- links to related products by category and appears in `app/sitemap.xml` alongside the static
+  routes;
+- returns the site 404 page for an unknown id.
+
+Product cards link to the detail page via "Full product details"; the dialog remains the quick
+preview.
+
 ## Data layer
 
 The JSON files are now seed sources only. Runtime reads and writes go through Supabase:
