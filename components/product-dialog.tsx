@@ -40,6 +40,9 @@ export default function ProductDialog({
     if (bodyRef.current) bodyRef.current.scrollTop = 0
   }, [product?.id])
 
+  // Only render dates we can format; never fall back to the raw stored value.
+  const addedLabel = product?.addedDate ? formatAddedDate(product.addedDate) : null
+
   return (
     <dialog
       ref={ref}
@@ -84,16 +87,19 @@ export default function ProductDialog({
               </ul>
             )}
             <div className="mt-2 flex flex-col gap-2">
-              {(product.price || product.addedDate) && (
+              {(product.price || addedLabel) && (
                 <div className="flex items-baseline justify-between gap-3">
                   {product.price ? (
                     <PriceTag product={product} size="lg" />
                   ) : (
                     <span />
                   )}
-                  {product.addedDate && (
+                  {product.addedDate && addedLabel && (
                     <p className="text-xs text-muted-foreground">
-                      Added: {formatAddedDate(product.addedDate) ?? product.addedDate}
+                      Added:{" "}
+                      <time dateTime={product.addedDate} title={product.addedDate}>
+                        {addedLabel}
+                      </time>
                     </p>
                   )}
                 </div>

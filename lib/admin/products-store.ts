@@ -67,7 +67,10 @@ export async function createProduct(input: Product): Promise<Product> {
   // one. UTC keeps the value stable regardless of the function's region.
   const product: Product = {
     ...input,
-    addedDate: input.addedDate ?? new Date().toISOString().slice(0, 10),
+    addedDate:
+      input.addedDate && input.addedDate.trim() !== ""
+        ? input.addedDate
+        : new Date().toISOString().slice(0, 10),
   }
 
   const { data: last, error: orderError } = await admin
@@ -93,7 +96,18 @@ export async function createProduct(input: Product): Promise<Product> {
 }
 
 /** Updates an existing product without changing its catalog position. Admin only. */
-export async function updateProduct(product: Product): Promise<void> {
+export async function updateProduct(input: Product): Promise<Product> {
+  // Editing a product that has no date should not silently erase the column.
+  // Treat a missing, null, or blank value as "today" so every saved product
+  // ends up with a full date, matching createProduct().
+  const product: Product = {
+    ...input,
+    addedDate:
+      input.addedDate && input.addedDate.trim() !== ""
+        ? input.addedDate
+        : new Date().toISOString().slice(0, 10),
+  }
+
   const { error } = await getSupabaseAdminClient()
     .from("products")
     .update(productToRow(product))
@@ -104,6 +118,9 @@ export async function updateProduct(product: Product): Promise<void> {
     if (conflict) throw conflict
     throw storeError("Unable to save the product.", error)
   }
+
+  // Returned so the API echoes the stored shape, including the defaulted date.
+  return product
 }
 
 /** Deletes one product. Admin only. */

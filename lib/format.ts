@@ -74,9 +74,35 @@ export function todayIsoDate(now: Date = new Date()): string {
   return `${year}-${month}-${day}`
 }
 
-export function formatAddedDate(iso: string): string | null {
-  const date = new Date(`${iso}T00:00:00Z`)
-  if (Number.isNaN(date.getTime())) return null
+/**
+ * Formats a stored `added_date` as "Oct 2026".
+ *
+ * Accepts both a plain date (`2026-10-29`) and a full timestamp as returned by
+ * PostgREST/Supabase (`2026-10-29T00:00:00+00:00`). Only the leading
+ * `YYYY-MM-DD` is read, so timezone suffixes never shift the month. Returns
+ * `null` for values that are not a real calendar date, letting callers show a
+ * placeholder instead of leaking a raw ISO string into the UI.
+ */
+export function formatAddedDate(value: string): string | null {
+  const match = /^(\d{4})-(\d{2})(?:-(\d{2}))?(?:$|[T\s])/.exec(value.trim())
+  if (!match) return null
+
+  const year = Number(match[1])
+  const month = Number(match[2])
+  const day = match[3] === undefined ? 1 : Number(match[3])
+  if (month < 1 || month > 12 || day < 1 || day > 31) return null
+
+  // Reject impossible days such as 2026-02-30 instead of letting Date roll
+  // them into the following month.
+  const date = new Date(Date.UTC(year, month - 1, day))
+  if (
+    date.getUTCFullYear() !== year ||
+    date.getUTCMonth() !== month - 1 ||
+    date.getUTCDate() !== day
+  ) {
+    return null
+  }
+
   return addedDateFormatter.format(date)
 }
 

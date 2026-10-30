@@ -136,6 +136,10 @@ export default function ProductCard({
   product: Product
   onOpen: (product: Product) => void
 }) {
+  // Only render dates we can format. Falling back to the raw stored value used
+  // to leak full ISO timestamps into the card.
+  const addedLabel = product.addedDate ? formatAddedDate(product.addedDate) : null
+
   return (
     <article className="card-lift group flex h-full flex-col overflow-hidden rounded-2xl border border-border bg-card">
       <button
@@ -161,7 +165,7 @@ export default function ProductCard({
             {product.name}
           </h3>
           <p className="line-clamp-2 text-sm leading-relaxed text-muted-foreground">{product.short}</p>
-          {(product.rating !== undefined || product.price || product.addedDate) && (
+          {(product.rating !== undefined || product.price || addedLabel) && (
             <div className="mt-auto flex flex-col gap-1 pt-2">
               {product.rating !== undefined && (
                 <Rating rating={product.rating} reviewCount={product.reviewCount} />
@@ -169,9 +173,12 @@ export default function ProductCard({
               {product.price && (
                 <PriceTag product={product} />
               )}
-              {product.addedDate && (
+              {product.addedDate && addedLabel && (
                 <p className="text-xs text-muted-foreground">
-                  Added: {formatAddedDate(product.addedDate) ?? product.addedDate}
+                  Added:{" "}
+                  <time dateTime={product.addedDate} title={product.addedDate}>
+                    {addedLabel}
+                  </time>
                 </p>
               )}
             </div>

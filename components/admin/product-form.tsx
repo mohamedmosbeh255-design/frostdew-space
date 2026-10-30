@@ -327,10 +327,10 @@ export default function ProductForm({
   const router = useRouter()
   const [values, setValues] = useState<FormState>(() => toInitialState(initial))
 
-  // New products are stamped with today's date by default. Done after mount so
-  // the client's calendar day is used (and so server/client markup matches).
+  // New products — and edits of products saved before dates were required —
+  // are stamped with today's date by default. Done after mount so the client's
+  // calendar day is used (and so server/client markup matches).
   useEffect(() => {
-    if (mode !== "create" || initial) return
     setValues((current) =>
       current.addedDate ? current : { ...current, addedDate: todayIsoDate() },
     )

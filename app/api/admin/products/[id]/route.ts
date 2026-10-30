@@ -85,9 +85,9 @@ export async function PUT(request: Request, { params }: RouteContext) {
       return NextResponse.json({ error: "Validation failed.", errors, warnings }, { status: 400 })
     }
 
-    await updateProduct(candidate)
+    const saved = await updateProduct(candidate)
 
-    return NextResponse.json({ ok: true, product: candidate, warnings })
+    return NextResponse.json({ ok: true, product: saved, warnings })
   } catch (error) {
     if (error instanceof ProductConflictError) {
       return NextResponse.json(

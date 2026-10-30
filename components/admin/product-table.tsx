@@ -124,14 +124,15 @@ export default function ProductTable({ products }: { products: Product[] }) {
                 </td>
                 <td className="whitespace-nowrap px-3 py-2 tabular-nums">
                   {/* Month + year only, e.g. "Oct 2026" (lib/format.ts). */}
-                  {product.addedDate ? (
-                    (() => {
-                      const label = formatAddedDate(product.addedDate) ?? product.addedDate
-                      return <time dateTime={product.addedDate}>{label}</time>
-                    })()
-                  ) : (
-                    "—"
-                  )}
+                  {(() => {
+                    const label = product.addedDate ? formatAddedDate(product.addedDate) : null
+                    if (!label || !product.addedDate) return "—"
+                    return (
+                      <time dateTime={product.addedDate} title={product.addedDate}>
+                        {label}
+                      </time>
+                    )
+                  })()}
                 </td>
                 <td className="px-3 py-2">
                   {product.relatedProducts && product.relatedProducts.length > 0 ? (
