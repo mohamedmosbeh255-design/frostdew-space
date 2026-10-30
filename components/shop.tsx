@@ -1,15 +1,13 @@
 "use client"
 
 import { useCallback, useMemo, useState } from "react"
-import { Search, X } from "lucide-react"
-import {
-  filterAndSort,
-  type Product,
-} from "@/lib/products"
+import { X } from "lucide-react"
+import { type Product } from "@/lib/products"
 import { AFFILIATE_PROXIMITY_NOTE } from "@/lib/site"
 import ProductCard from "./product-card"
 import ProductDialog from "./product-dialog"
 import ProductFilters from "./products/ProductFilters"
+import ProductSearch from "./products/ProductSearch"
 
 const PAGE_SIZE = 12
 const MAX_RELATED = 6
@@ -34,9 +32,9 @@ function relatedFor(
 }
 
 export default function Shop({ products }: { products: Product[] }) {
-  const [query, setQuery] = useState("")
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE)
   const [filtered, setFiltered] = useState<Product[]>(products)
+  const [searchResults, setSearchResults] = useState<Product[]>(products)
   const [filterVersion, setFilterVersion] = useState(0)
   const [selected, setSelected] = useState<Product | null>(null)
 
@@ -44,10 +42,7 @@ export default function Shop({ products }: { products: Product[] }) {
     () => new Map(products.map((product) => [product.id, product])),
     [products],
   )
-  const results = useMemo(
-    () => filterAndSort(filtered, "all", query, "featured"),
-    [filtered, query],
-  )
+  const results = searchResults
   const shown = results.slice(0, visibleCount)
   const related = useMemo(
     () => relatedFor(selected, productById),
@@ -59,8 +54,12 @@ export default function Shop({ products }: { products: Product[] }) {
     setVisibleCount(PAGE_SIZE)
   }, [])
 
+  const handleSearchResults = useCallback((next: Product[]) => {
+    setSearchResults(next)
+    setVisibleCount(PAGE_SIZE)
+  }, [])
+
   const reset = () => {
-    setQuery("")
     setVisibleCount(PAGE_SIZE)
     setFilterVersion((version) => version + 1)
   }
@@ -85,20 +84,11 @@ export default function Shop({ products }: { products: Product[] }) {
         </div>
 
         <div className="mt-12 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="relative sm:w-80">
-            <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-glacier" aria-hidden="true" />
-            <input
-              type="search"
-              value={query}
-              onChange={(e) => {
-                setQuery(e.target.value)
-                setVisibleCount(PAGE_SIZE)
-              }}
-              placeholder="Search products or brands"
-              aria-label="Search products or brands"
-              className="h-11 w-full rounded-full border border-input bg-white pl-10 pr-4 text-sm text-midnight placeholder:text-muted-foreground focus-visible:outline-2"
-            />
-          </div>
+          <ProductSearch
+            key={filterVersion}
+            products={filtered}
+            onSearchResults={handleSearchResults}
+          />
           <p className="text-sm text-muted-foreground" role="status" aria-live="polite">
             Showing {shown.length} of {results.length} products
           </p>
@@ -109,6 +99,7 @@ export default function Shop({ products }: { products: Product[] }) {
             key={filterVersion}
             products={products}
             onFilterChange={handleFilterChange}
+            onReset={reset}
           />
         </div>
 
@@ -118,13 +109,15 @@ export default function Shop({ products }: { products: Product[] }) {
 
         {results.length === 0 ? (
           <div className="mt-10 flex flex-col items-center gap-4 rounded-2xl border border-dashed border-input bg-white/60 px-6 py-16 text-center">
-            <p className="font-display text-xl text-midnight">No products match your filters</p>
+            <p className="font-display text-xl text-midnight">
+              No products match your search or filters
+            </p>
             <button
               type="button"
               onClick={reset}
               className="inline-flex items-center gap-2 rounded-full bg-winter px-5 py-2.5 text-sm font-bold text-snow hover:bg-midnight"
             >
-              <X className="h-4 w-4" aria-hidden="true" /> Clear filters
+              <X className="h-4 w-4" aria-hidden="true" /> Clear search &amp; filters
             </button>
           </div>
         ) : (

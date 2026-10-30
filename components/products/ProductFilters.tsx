@@ -28,6 +28,8 @@ type Filters = {
 type ProductFiltersProps = {
   products: Product[]
   onFilterChange: (filtered: Product[]) => void
+  /** Called after the panel resets, so the shop can clear the search box too. */
+  onReset?: () => void
 }
 
 /** Effective price: the sale price when present, otherwise the regular price. */
@@ -40,7 +42,11 @@ function addedTime(product: Product): number {
   return product.addedDate ? Date.parse(`${product.addedDate}T00:00:00Z`) || 0 : 0
 }
 
-export default function ProductFilters({ products, onFilterChange }: ProductFiltersProps) {
+export default function ProductFilters({
+  products,
+  onFilterChange,
+  onReset,
+}: ProductFiltersProps) {
   const categoryOrder = useMemo(
     () => new Map<string, number>(CATEGORIES.map((category, index) => [category.id, index])),
     [],
@@ -164,7 +170,7 @@ export default function ProductFilters({ products, onFilterChange }: ProductFilt
     filters.inStock ||
     filters.sortBy !== "featured"
 
-  const reset = () =>
+  const reset = () => {
     setFilters({
       category: "all",
       priceRange: [0, maxCatalogPrice],
@@ -173,6 +179,8 @@ export default function ProductFilters({ products, onFilterChange }: ProductFilt
       inStock: false,
       sortBy: "featured",
     })
+    onReset?.()
+  }
 
   const selectClass =
     "mt-2 h-10 w-full rounded-xl border border-input bg-white px-3 text-sm text-midnight focus-visible:outline-2"
