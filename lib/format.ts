@@ -13,6 +13,13 @@ const addedDateFormatter = new Intl.DateTimeFormat("en-US", {
   timeZone: "UTC",
 })
 
+const fullAddedDateFormatter = new Intl.DateTimeFormat("en-US", {
+  month: "short",
+  day: "numeric",
+  year: "numeric",
+  timeZone: "UTC",
+})
+
 export function formatNumber(value: number): string {
   return countFormatter.format(value)
 }
@@ -75,15 +82,14 @@ export function todayIsoDate(now: Date = new Date()): string {
 }
 
 /**
- * Formats a stored `added_date` as "Oct 2026".
+ * Parses a stored `added_date` into a UTC date.
  *
  * Accepts both a plain date (`2026-10-29`) and a full timestamp as returned by
  * PostgREST/Supabase (`2026-10-29T00:00:00+00:00`). Only the leading
- * `YYYY-MM-DD` is read, so timezone suffixes never shift the month. Returns
- * `null` for values that are not a real calendar date, letting callers show a
- * placeholder instead of leaking a raw ISO string into the UI.
+ * `YYYY-MM-DD` is read, so timezone suffixes never shift the day. Returns
+ * `null` for values that are not a real calendar date.
  */
-export function formatAddedDate(value: string): string | null {
+function parseAddedDate(value: string): Date | null {
   const match = /^(\d{4})-(\d{2})(?:-(\d{2}))?(?:$|[T\s])/.exec(value.trim())
   if (!match) return null
 
@@ -103,7 +109,23 @@ export function formatAddedDate(value: string): string | null {
     return null
   }
 
-  return addedDateFormatter.format(date)
+  return date
+}
+
+/**
+ * Formats a stored `added_date` as "Oct 2026" for compact admin tables.
+ * Returns `null` for values that cannot be formatted, letting callers show a
+ * placeholder instead of leaking a raw ISO string into the UI.
+ */
+export function formatAddedDate(value: string): string | null {
+  const date = parseAddedDate(value)
+  return date ? addedDateFormatter.format(date) : null
+}
+
+/** Formats a stored `added_date` as a full date: "Oct 29, 2026". */
+export function formatAddedDateFull(value: string): string | null {
+  const date = parseAddedDate(value)
+  return date ? fullAddedDateFormatter.format(date) : null
 }
 
 export function reviewCountLabel(count: number): string {

@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from "react"
 import { Check, X } from "lucide-react"
-import { formatAddedDate } from "@/lib/format"
+import { formatAddedDateFull } from "@/lib/format"
 import { type Product } from "@/lib/products"
 import { AFFILIATE_PROXIMITY_NOTE } from "@/lib/site"
 import { BuyLink, PriceTag, ProductImage, Rating } from "./product-card"
@@ -41,7 +41,7 @@ export default function ProductDialog({
   }, [product?.id])
 
   // Only render dates we can format; never fall back to the raw stored value.
-  const addedLabel = product?.addedDate ? formatAddedDate(product.addedDate) : null
+  const addedLabel = product?.addedDate ? formatAddedDateFull(product.addedDate) : null
 
   return (
     <dialog
@@ -96,8 +96,10 @@ export default function ProductDialog({
                   )}
                   {product.addedDate && addedLabel && (
                     <p className="text-xs text-muted-foreground">
-                      Added:{" "}
-                      <time dateTime={product.addedDate} title={product.addedDate}>
+                      <time
+                        dateTime={product.addedDate}
+                        title={`Added ${addedLabel}`}
+                      >
                         {addedLabel}
                       </time>
                     </p>

@@ -121,8 +121,8 @@ Products without `salePrice` render exactly as before.
 today's date, and `createProduct()` stamps today's date when a create request omits it, so new
 records are dated automatically without touching the field. Editing a product whose date is
 empty pre-fills today as well, and `updateProduct()` stamps today when an update leaves
-`addedDate` missing, null, or blank. The products table and the storefront show only the month
-and year (`Oct 2026`).
+`addedDate` missing, null, or blank. The admin products table shows month and year (`Oct 2026`);
+the storefront cards and product dialog show the full date (`Oct 29, 2026`).
 
 ## Site settings
 

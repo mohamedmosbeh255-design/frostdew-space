@@ -4,7 +4,7 @@ import { useState } from "react"
 import { ExternalLink, Star } from "lucide-react"
 import {
   discountPercent,
-  formatAddedDate,
+  formatAddedDateFull,
   formatPrice,
   formatRating,
   reviewCountLabel,
@@ -138,7 +138,7 @@ export default function ProductCard({
 }) {
   // Only render dates we can format. Falling back to the raw stored value used
   // to leak full ISO timestamps into the card.
-  const addedLabel = product.addedDate ? formatAddedDate(product.addedDate) : null
+  const addedLabel = product.addedDate ? formatAddedDateFull(product.addedDate) : null
 
   return (
     <article className="card-lift group flex h-full flex-col overflow-hidden rounded-2xl border border-border bg-card">
@@ -175,8 +175,10 @@ export default function ProductCard({
               )}
               {product.addedDate && addedLabel && (
                 <p className="text-xs text-muted-foreground">
-                  Added:{" "}
-                  <time dateTime={product.addedDate} title={product.addedDate}>
+                  <time
+                    dateTime={product.addedDate}
+                    title={`Added ${addedLabel}`}
+                  >
                     {addedLabel}
                   </time>
                 </p>
