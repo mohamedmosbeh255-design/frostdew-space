@@ -1,18 +1,15 @@
 "use client"
 
-import { useMemo, useState } from "react"
+import { useCallback, useMemo, useState } from "react"
 import { Search, X } from "lucide-react"
 import {
-  CATEGORIES,
-  SORT_OPTIONS,
-  countByCategory,
   filterAndSort,
   type Product,
-  type SortKey,
 } from "@/lib/products"
 import { AFFILIATE_PROXIMITY_NOTE } from "@/lib/site"
 import ProductCard from "./product-card"
 import ProductDialog from "./product-dialog"
+import ProductFilters from "./products/ProductFilters"
 
 const PAGE_SIZE = 12
 const MAX_RELATED = 6
@@ -37,20 +34,19 @@ function relatedFor(
 }
 
 export default function Shop({ products }: { products: Product[] }) {
-  const [category, setCategory] = useState("all")
   const [query, setQuery] = useState("")
-  const [sort, setSort] = useState<SortKey>("featured")
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE)
+  const [filtered, setFiltered] = useState<Product[]>(products)
+  const [filterVersion, setFilterVersion] = useState(0)
   const [selected, setSelected] = useState<Product | null>(null)
 
   const productById = useMemo(
     () => new Map(products.map((product) => [product.id, product])),
     [products],
   )
-  const counts = useMemo(() => countByCategory(products), [products])
   const results = useMemo(
-    () => filterAndSort(products, category, query, sort),
-    [products, category, query, sort],
+    () => filterAndSort(filtered, "all", query, "featured"),
+    [filtered, query],
   )
   const shown = results.slice(0, visibleCount)
   const related = useMemo(
@@ -58,11 +54,15 @@ export default function Shop({ products }: { products: Product[] }) {
     [selected, productById],
   )
 
-  const reset = () => {
-    setCategory("all")
-    setQuery("")
-    setSort("featured")
+  const handleFilterChange = useCallback((next: Product[]) => {
+    setFiltered(next)
     setVisibleCount(PAGE_SIZE)
+  }, [])
+
+  const reset = () => {
+    setQuery("")
+    setVisibleCount(PAGE_SIZE)
+    setFilterVersion((version) => version + 1)
   }
 
   return (
@@ -84,76 +84,41 @@ export default function Shop({ products }: { products: Product[] }) {
           </p>
         </div>
 
-        <div className="mt-12 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-          <div
-            role="group"
-            aria-label="Product categories"
-            className="no-scrollbar -mx-6 flex gap-2 overflow-x-auto px-6 pb-1 lg:mx-0 lg:flex-wrap lg:overflow-visible lg:px-0"
-          >
-            {CATEGORIES.filter((c) => counts[c.id]).map((c) => {
-              const active = category === c.id
-              return (
-                <button
-                  key={c.id}
-                  type="button"
-                  aria-pressed={active}
-                  onClick={() => {
-                    setCategory(c.id)
-                    setVisibleCount(PAGE_SIZE)
-                  }}
-                  className={`shrink-0 rounded-full px-4 py-2 text-sm font-bold transition-colors ${
-                    active
-                      ? "bg-winter text-snow shadow-md shadow-winter/25"
-                      : "border border-border bg-white text-winter hover:bg-ice"
-                  }`}
-                >
-                  {c.label} <span className={active ? "text-frost" : "text-glacier"}>{counts[c.id]}</span>
-                </button>
-              )
-            })}
+        <div className="mt-12 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="relative sm:w-80">
+            <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-glacier" aria-hidden="true" />
+            <input
+              type="search"
+              value={query}
+              onChange={(e) => {
+                setQuery(e.target.value)
+                setVisibleCount(PAGE_SIZE)
+              }}
+              placeholder="Search products or brands"
+              aria-label="Search products or brands"
+              className="h-11 w-full rounded-full border border-input bg-white pl-10 pr-4 text-sm text-midnight placeholder:text-muted-foreground focus-visible:outline-2"
+            />
           </div>
-
-          <div className="flex flex-col gap-3 sm:flex-row">
-            <div className="relative sm:w-64">
-              <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-glacier" aria-hidden="true" />
-              <input
-                type="search"
-                value={query}
-                onChange={(e) => {
-                  setQuery(e.target.value)
-                  setVisibleCount(PAGE_SIZE)
-                }}
-                placeholder="Search products or brands"
-                aria-label="Search products or brands"
-                className="h-11 w-full rounded-full border border-input bg-white pl-10 pr-4 text-sm text-midnight placeholder:text-muted-foreground focus-visible:outline-2"
-              />
-            </div>
-            <select
-              value={sort}
-              onChange={(e) => setSort(e.target.value as SortKey)}
-              aria-label="Sort products"
-              className="h-11 rounded-full border border-input bg-white px-4 text-sm font-semibold text-midnight"
-            >
-              {SORT_OPTIONS.map((o) => (
-                <option key={o.id} value={o.id}>
-                  {o.label}
-                </option>
-              ))}
-            </select>
-          </div>
+          <p className="text-sm text-muted-foreground" role="status" aria-live="polite">
+            Showing {shown.length} of {results.length} products
+          </p>
         </div>
 
-        <p className="mt-6 text-sm text-muted-foreground" role="status" aria-live="polite">
-          Showing {shown.length} of {results.length} products
-        </p>
+        <div className="mt-4">
+          <ProductFilters
+            key={filterVersion}
+            products={products}
+            onFilterChange={handleFilterChange}
+          />
+        </div>
 
-        <p className="mt-3 text-xs leading-relaxed text-muted-foreground">
+        <p className="mt-4 text-xs leading-relaxed text-muted-foreground">
           {AFFILIATE_PROXIMITY_NOTE}
         </p>
 
         {results.length === 0 ? (
           <div className="mt-10 flex flex-col items-center gap-4 rounded-2xl border border-dashed border-input bg-white/60 px-6 py-16 text-center">
-            <p className="font-display text-xl text-midnight">No products match your search</p>
+            <p className="font-display text-xl text-midnight">No products match your filters</p>
             <button
               type="button"
               onClick={reset}
