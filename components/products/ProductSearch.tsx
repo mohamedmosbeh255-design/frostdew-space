@@ -185,7 +185,8 @@ export default function ProductSearch({ products, onSearchResults }: ProductSear
                   <span className="h-10 w-10 shrink-0 overflow-hidden rounded-lg bg-white">
                     <ProductImage
                       product={product}
-                      className="h-full w-full object-contain p-1"
+                      className="h-full w-full"
+                      imageClassName="h-full w-full object-contain p-1"
                     />
                   </span>
                   <span className="min-w-0 flex-1">

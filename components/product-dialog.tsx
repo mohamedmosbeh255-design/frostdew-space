@@ -132,7 +132,8 @@ export default function ProductDialog({
                     >
                       <ProductImage
                         product={item}
-                        className="aspect-square w-full object-contain p-2"
+                        className="aspect-square w-full"
+                        imageClassName="h-full w-full object-contain p-2"
                       />
                       <span className="text-[0.65rem] font-bold uppercase tracking-[0.15em] text-glacier">
                         {item.brand}

@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react"
 import { ChevronDown } from "lucide-react"
 import { resolveActiveHeroMedia } from "@/lib/hero-media"
 import type { SiteContent } from "@/lib/site-content"
+import OptimizedImage from "@/components/ui/OptimizedImage"
 
 export default function Hero({ content }: { content: SiteContent["hero"] }) {
   const sectionRef = useRef<HTMLElement>(null)
@@ -49,8 +50,14 @@ export default function Hero({ content }: { content: SiteContent["hero"] }) {
       >
         {media.type === "video" ? (
           mediaFailed ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={fallbackImage} alt="" className="h-full w-full object-cover" />
+            <OptimizedImage
+              src={fallbackImage}
+              alt=""
+              fill
+              sizes="100vw"
+              className="h-full w-full"
+              imageClassName="h-full w-full object-cover"
+            />
           ) : (
             <video
               key={media.url}
@@ -69,15 +76,24 @@ export default function Hero({ content }: { content: SiteContent["hero"] }) {
             />
           )
         ) : mediaFailed ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={fallbackImage} alt="" className="h-full w-full object-cover" />
+          <OptimizedImage
+            src={fallbackImage}
+            alt=""
+            fill
+            sizes="100vw"
+            className="h-full w-full"
+            imageClassName="h-full w-full object-cover"
+          />
         ) : (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
+          <OptimizedImage
             key={media.url}
             src={media.url}
             alt=""
-            className="h-full w-full object-cover"
+            fill
+            priority
+            sizes="100vw"
+            className="h-full w-full"
+            imageClassName="h-full w-full object-cover"
             onError={() => setMediaFailed(true)}
           />
         )}

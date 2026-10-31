@@ -12,6 +12,7 @@ import {
 } from "@/lib/format"
 import { type Product } from "@/lib/products"
 import { getProductStoreLinks } from "@/lib/store-links"
+import OptimizedImage from "@/components/ui/OptimizedImage"
 
 export function Rating({ rating, reviewCount }: { rating: number; reviewCount?: number }) {
   const filled = Math.round(rating)
@@ -77,7 +78,15 @@ export function PriceTag({
   )
 }
 
-export function ProductImage({ product, className }: { product: Product; className?: string }) {
+export function ProductImage({
+  product,
+  className,
+  imageClassName = "h-full w-full object-contain p-4",
+}: {
+  product: Product
+  className?: string
+  imageClassName?: string
+}) {
   const [failed, setFailed] = useState(false)
   if (failed) {
     return (
@@ -87,14 +96,14 @@ export function ProductImage({ product, className }: { product: Product; classNa
     )
   }
   return (
-    // eslint-disable-next-line @next/next/no-img-element
-    <img
+    <OptimizedImage
       src={product.image}
       alt={`${product.brand} ${product.name}`}
-      loading="lazy"
-      decoding="async"
+      fill
+      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
       referrerPolicy="no-referrer"
       className={className}
+      imageClassName={imageClassName}
       onError={() => setFailed(true)}
     />
   )
@@ -152,7 +161,8 @@ export default function ProductCard({
         <div className="relative aspect-square w-full overflow-hidden bg-white">
           <ProductImage
             product={product}
-            className="h-full w-full object-contain p-4 transition-transform duration-500 ease-out group-hover:scale-[1.04]"
+            className="h-full w-full"
+            imageClassName="h-full w-full object-contain p-4 transition-transform duration-500 ease-out group-hover:scale-[1.04]"
           />
           {product.bestseller && (
             <span className="glass-chip absolute left-3 top-3 rounded-full px-3 py-1 text-[0.65rem] font-bold uppercase tracking-[0.14em] text-winter">

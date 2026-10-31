@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import { getProductGallery } from "@/lib/product-gallery"
 import type { Product } from "@/lib/products"
+import OptimizedImage from "@/components/ui/OptimizedImage"
 
 export default function ProductGallery({ product }: { product: Product }) {
   const sources = useMemo(() => getProductGallery(product), [product])
@@ -73,14 +74,15 @@ export default function ProductGallery({ product }: { product: Product }) {
     <div className="flex flex-col bg-white">
       <div className="relative aspect-square w-full bg-white">
         {current ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
+          <OptimizedImage
             key={current}
             src={current}
             alt={`${product.brand} ${product.name} — image ${safeIndex + 1} of ${visible.length}`}
-            className="h-full w-full object-contain p-6"
-            decoding="async"
+            fill
+            sizes="(max-width: 1024px) 100vw, 50vw"
             referrerPolicy="no-referrer"
+            className="h-full w-full"
+            imageClassName="h-full w-full object-contain p-6"
             onError={() => markFailed(current)}
           />
         ) : (
@@ -132,14 +134,14 @@ export default function ProductGallery({ product }: { product: Product }) {
                   : "border-border hover:bg-ice"
               }`}
             >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
+              <OptimizedImage
                 src={source}
                 alt=""
-                className="h-full w-full object-contain p-1"
-                loading="lazy"
-                decoding="async"
+                fill
+                sizes="56px"
                 referrerPolicy="no-referrer"
+                className="h-full w-full"
+                imageClassName="h-full w-full object-contain p-1"
                 onError={() => markFailed(source)}
               />
             </button>
