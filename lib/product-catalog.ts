@@ -9,9 +9,3 @@ import type { Product } from "@/lib/products"
  * single Supabase read instead of querying twice.
  */
 export const readCatalog = cache(async (): Promise<Product[]> => readProducts())
-
-/** Products are addressed by their id, which is already URL-safe. */
-export const getProductBySlug = cache(async (slug: string): Promise<Product | null> => {
-  const products = await readCatalog()
-  return products.find((product) => product.id === slug) ?? null
-})

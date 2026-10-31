@@ -1,9 +1,16 @@
 "use client"
 
-import { useCallback, useMemo, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from "react"
+import { useRouter } from "next/navigation"
 import { X } from "lucide-react"
 import { type Product } from "@/lib/products"
 import { AFFILIATE_PROXIMITY_NOTE } from "@/lib/site"
+import {
+  defaultShopFilters,
+  parseShopQuery,
+  shopHref,
+  type ShopFilters,
+} from "@/lib/shop-params"
 import ProductCard from "./product-card"
 import ProductDialog from "./product-dialog"
 import ProductFilters from "./products/ProductFilters"
@@ -31,37 +38,104 @@ function relatedFor(
   return related
 }
 
-export default function Shop({ products }: { products: Product[] }) {
+type ShopProps = {
+  /** The full catalog, used for filter options and related products. */
+  products: Product[]
+  /** The server-filtered result set for the current URL. */
+  results: Product[]
+  initialQuery: string
+  initialFilters: ShopFilters
+  /** The query those results were computed for. */
+  serverQuery: string
+  maxCatalogPrice: number
+}
+
+export default function Shop({
+  products,
+  results,
+  initialQuery,
+  initialFilters,
+  serverQuery,
+  maxCatalogPrice,
+}: ShopProps) {
+  const router = useRouter()
+  const [query, setQuery] = useState(initialQuery)
+  const [filters, setFilters] = useState(initialFilters)
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE)
-  const [filtered, setFiltered] = useState<Product[]>(products)
-  const [searchResults, setSearchResults] = useState<Product[]>(products)
-  const [filterVersion, setFilterVersion] = useState(0)
   const [selected, setSelected] = useState<Product | null>(null)
+  const [isPending, startTransition] = useTransition()
 
   const productById = useMemo(
     () => new Map(products.map((product) => [product.id, product])),
     [products],
   )
-  const results = searchResults
   const shown = results.slice(0, visibleCount)
   const related = useMemo(
     () => relatedFor(selected, productById),
     [selected, productById],
   )
 
-  const handleFilterChange = useCallback((next: Product[]) => {
-    setFiltered(next)
-    setVisibleCount(PAGE_SIZE)
-  }, [])
+  // The URL is the source of truth for the server query. Keep a ref so a
+  // navigation is only issued when the URL would actually change.
+  const lastHref = useRef(shopHref({ q: initialQuery, filters: initialFilters }, maxCatalogPrice))
 
-  const handleSearchResults = useCallback((next: Product[]) => {
-    setSearchResults(next)
-    setVisibleCount(PAGE_SIZE)
-  }, [])
+  const commit = useCallback(
+    (nextQuery: string, nextFilters: ShopFilters) => {
+      const href = shopHref({ q: nextQuery, filters: nextFilters }, maxCatalogPrice)
+      if (href === lastHref.current) return
+      lastHref.current = href
+      startTransition(() => router.replace(href, { scroll: false }))
+    },
+    [maxCatalogPrice, router, startTransition],
+  )
+
+  // Browser back/forward changes the URL outside our state. Next re-renders
+  // the page, but the draft filters and search box also need to follow.
+  useEffect(() => {
+    const onPopState = () => {
+      const parsed = parseShopQuery(
+        Object.fromEntries(new URLSearchParams(window.location.search)),
+      )
+      const nextFilters: ShopFilters = {
+        category: parsed.filters.category,
+        maxPrice: Math.min(parsed.filters.maxPrice ?? maxCatalogPrice, maxCatalogPrice),
+        rating: parsed.filters.rating,
+        sort: parsed.filters.sort,
+      }
+      setQuery(parsed.q)
+      setFilters(nextFilters)
+      setVisibleCount(PAGE_SIZE)
+      lastHref.current = shopHref({ q: parsed.q, filters: nextFilters }, maxCatalogPrice)
+    }
+
+    window.addEventListener("popstate", onPopState)
+    return () => window.removeEventListener("popstate", onPopState)
+  }, [maxCatalogPrice])
+
+  const handleQueryChange = useCallback(
+    (next: string) => {
+      setQuery(next)
+      setVisibleCount(PAGE_SIZE)
+      commit(next, filters)
+    },
+    [commit, filters],
+  )
+
+  const handleFilterChange = useCallback(
+    (next: ShopFilters) => {
+      setFilters(next)
+      setVisibleCount(PAGE_SIZE)
+      commit(query, next)
+    },
+    [commit, query],
+  )
 
   const reset = () => {
+    const nextFilters = defaultShopFilters(maxCatalogPrice)
+    setQuery("")
+    setFilters(nextFilters)
     setVisibleCount(PAGE_SIZE)
-    setFilterVersion((version) => version + 1)
+    commit("", nextFilters)
   }
 
   return (
@@ -85,9 +159,11 @@ export default function Shop({ products }: { products: Product[] }) {
 
         <div className="mt-12 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <ProductSearch
-            key={filterVersion}
-            products={filtered}
-            onSearchResults={handleSearchResults}
+            value={query}
+            resultQuery={serverQuery}
+            results={results}
+            isPending={isPending}
+            onChange={handleQueryChange}
           />
           <p className="text-sm text-muted-foreground" role="status" aria-live="polite">
             Showing {shown.length} of {results.length} products
@@ -96,10 +172,12 @@ export default function Shop({ products }: { products: Product[] }) {
 
         <div className="mt-4">
           <ProductFilters
-            key={filterVersion}
             products={products}
-            onFilterChange={handleFilterChange}
+            value={filters}
+            maxCatalogPrice={maxCatalogPrice}
+            onChange={handleFilterChange}
             onReset={reset}
+            isPending={isPending}
           />
         </div>
 
@@ -107,38 +185,40 @@ export default function Shop({ products }: { products: Product[] }) {
           {AFFILIATE_PROXIMITY_NOTE}
         </p>
 
-        {results.length === 0 ? (
-          <div className="mt-10 flex flex-col items-center gap-4 rounded-2xl border border-dashed border-input bg-white/60 px-6 py-16 text-center">
-            <p className="font-display text-xl text-midnight">
-              No products match your search or filters
-            </p>
-            <button
-              type="button"
-              onClick={reset}
-              className="inline-flex items-center gap-2 rounded-full bg-winter px-5 py-2.5 text-sm font-bold text-snow hover:bg-midnight"
-            >
-              <X className="h-4 w-4" aria-hidden="true" /> Clear search &amp; filters
-            </button>
-          </div>
-        ) : (
-          <div className="mt-4 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {shown.map((p) => (
-              <ProductCard key={p.id} product={p} onOpen={setSelected} />
-            ))}
-          </div>
-        )}
+        <div aria-busy={isPending} className={isPending ? "opacity-60 transition-opacity" : "transition-opacity"}>
+          {results.length === 0 ? (
+            <div className="mt-10 flex flex-col items-center gap-4 rounded-2xl border border-dashed border-input bg-white/60 px-6 py-16 text-center">
+              <p className="font-display text-xl text-midnight">
+                No products match your search or filters
+              </p>
+              <button
+                type="button"
+                onClick={reset}
+                className="inline-flex items-center gap-2 rounded-full bg-winter px-5 py-2.5 text-sm font-bold text-snow hover:bg-midnight"
+              >
+                <X className="h-4 w-4" aria-hidden="true" /> Clear search &amp; filters
+              </button>
+            </div>
+          ) : (
+            <div className="mt-4 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              {shown.map((p) => (
+                <ProductCard key={p.id} product={p} onOpen={setSelected} />
+              ))}
+            </div>
+          )}
 
-        {shown.length < results.length && (
-          <div className="mt-12 flex justify-center">
-            <button
-              type="button"
-              onClick={() => setVisibleCount((n) => n + PAGE_SIZE)}
-              className="rounded-full border border-winter px-8 py-3 text-sm font-bold text-winter transition-colors hover:bg-winter hover:text-snow"
-            >
-              Show more products
-            </button>
-          </div>
-        )}
+          {shown.length < results.length && (
+            <div className="mt-12 flex justify-center">
+              <button
+                type="button"
+                onClick={() => setVisibleCount((n) => n + PAGE_SIZE)}
+                className="rounded-full border border-winter px-8 py-3 text-sm font-bold text-winter transition-colors hover:bg-winter hover:text-snow"
+              >
+                Show more products
+              </button>
+            </div>
+          )}
+        </div>
       </div>
 
       <ProductDialog

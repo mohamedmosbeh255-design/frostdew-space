@@ -1,7 +1,10 @@
 import "server-only"
 
+import { cache } from "react"
+import { parsePrice } from "@/lib/format"
 import { rowToProduct } from "@/lib/product-row.mjs"
 import { CATEGORIES, type Product } from "@/lib/products"
+import type { ShopSort } from "@/lib/shop-params"
 import { getSupabasePublicClient } from "@/lib/supabase"
 
 /**
@@ -23,6 +26,23 @@ export class SearchError extends Error {
 
 /** Columns searched by the free-text part of the query. */
 const TEXT_COLUMNS = ["brand", "name", "full_name", "short", "description"] as const
+
+/**
+ * Filters accepted by `searchProducts`.
+ *
+ * `Partial<Product>` filters are translated straight to columns. The extra
+ * keys cover the shop UI, which does not map 1:1 to a column: prices are
+ * stored as display strings ("$18.90", "£22.99"), so range filtering and
+ * price sorting happen in memory after the row query.
+ */
+export type ProductSearchFilters = Partial<Product> & {
+  minPrice?: number
+  maxPrice?: number
+  minRating?: number
+  sort?: ShopSort
+}
+
+const UI_FILTER_KEYS = new Set(["minPrice", "maxPrice", "minRating", "sort"])
 
 /** Product field -> database column. */
 const FILTER_COLUMNS = {
@@ -69,9 +89,63 @@ function sanitizeSearchTerm(query: string): string | null {
   return cleaned.length > 0 ? cleaned : null
 }
 
+/** Effective price: the sale price when present, otherwise the regular price. */
+function priceAmount(product: Product): number | null {
+  const parsed = parsePrice(product.salePrice ?? product.price ?? "")
+  return parsed ? parsed.amount : null
+}
+
+function addedTime(product: Product): number {
+  return product.addedDate ? Date.parse(`${product.addedDate}T00:00:00Z`) || 0 : 0
+}
+
+function withinPriceRange(
+  products: Product[],
+  minPrice: number | undefined,
+  maxPrice: number | undefined,
+): Product[] {
+  if (minPrice === undefined && maxPrice === undefined) return products
+
+  const low = minPrice ?? 0
+  return products.filter((product) => {
+    const amount = priceAmount(product)
+    if (amount === null) return false
+    return amount >= low && (maxPrice === undefined || amount <= maxPrice)
+  })
+}
+
+/** Sorting is stable, so equal entries keep the curated `sort_order`. */
+function sortProducts(products: Product[], sort: ShopSort | undefined): Product[] {
+  if (!sort || sort === "featured") return products
+
+  const byPrice = (a: Product, b: Product): number => {
+    const priceA = priceAmount(a)
+    const priceB = priceAmount(b)
+    if (priceA === null && priceB === null) return 0
+    if (priceA === null) return 1
+    if (priceB === null) return -1
+    return priceA - priceB
+  }
+
+  return [...products].sort((a, b) => {
+    switch (sort) {
+      case "newest":
+        return addedTime(b) - addedTime(a)
+      case "price-low":
+        return byPrice(a, b)
+      case "price-high":
+        return byPrice(b, a)
+      case "rating":
+        return (b.rating ?? -1) - (a.rating ?? -1)
+      default:
+        return 0
+    }
+  })
+}
+
 export async function searchProducts(
   query: string,
-  filters?: Partial<Product>,
+  filters?: ProductSearchFilters,
 ): Promise<Product[]> {
   const term = sanitizeSearchTerm(query.trim())
 
@@ -103,13 +177,11 @@ export async function searchProducts(
   }
 
   if (filters) {
-    for (const [key, value] of Object.entries(filters) as [
-      keyof Product,
-      Product[keyof Product] | undefined,
-    ][]) {
+    for (const [key, value] of Object.entries(filters)) {
+      if (UI_FILTER_KEYS.has(key)) continue
       if (value === undefined || value === null || value === "") continue
 
-      const column = FILTER_COLUMNS[key]
+      const column = (FILTER_COLUMNS as Record<string, string>)[key]
       if (!column) continue
 
       if (Array.isArray(value)) {
@@ -120,6 +192,10 @@ export async function searchProducts(
       } else {
         productQuery = productQuery.eq(column, value)
       }
+    }
+
+    if (typeof filters.minRating === "number" && filters.minRating > 0) {
+      productQuery = productQuery.gte("rating", filters.minRating)
     }
   }
 
@@ -134,14 +210,19 @@ export async function searchProducts(
     throw new SearchError("Unable to search products.", { cause: error })
   }
 
-  return (data ?? []).map((row) => rowToProduct(row))
+  const products = (data ?? []).map((row) => rowToProduct(row))
+  const priced = withinPriceRange(products, filters?.minPrice, filters?.maxPrice)
+
+  return sortProducts(priced, filters?.sort)
 }
 
 /**
  * Product ids double as URL slugs, so the lookup is by `id`.
  * Returns null for a missing product so pages can render notFound().
+ *
+ * `cache` deduplicates the metadata and page-body calls in the same request.
  */
-export async function getProductBySlug(slug: string): Promise<Product | null> {
+export const getProductBySlug = cache(async (slug: string): Promise<Product | null> => {
   const { data, error } = await getSupabasePublicClient()
     .from("products")
     .select("*")
@@ -154,4 +235,4 @@ export async function getProductBySlug(slug: string): Promise<Product | null> {
   }
 
   return data ? rowToProduct(data) : null
-}
+})

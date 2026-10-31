@@ -8,32 +8,23 @@ import { CATEGORIES, type Product } from "@/lib/products"
 import { ProductImage } from "@/components/product-card"
 
 type ProductSearchProps = {
-  /** The catalog to search, usually the products that already passed the filters. */
-  products: Product[]
-  /** Receives the debounced matches so the parent can render them. */
-  onSearchResults: (results: Product[]) => void
+  /** The committed search term; follows the URL. */
+  value: string
+  /** The term the server results were computed for. */
+  resultQuery: string
+  /** Server matches for `resultQuery`, used as suggestions. */
+  results: Product[]
+  /** A server query is in flight. */
+  isPending: boolean
+  /** Called after the debounce and on submit, which triggers the server query. */
+  onChange: (value: string) => void
 }
 
 const SUGGESTION_LIMIT = 5
 const DEBOUNCE_MS = 300
 
-function matches(product: Product, term: string): boolean {
-  const needle = term.toLowerCase()
-  const haystack = [
-    product.brand,
-    product.name,
-    product.fullName,
-    product.short,
-    product.description,
-    ...product.categories,
-    ...product.categories.map(
-      (id) => CATEGORIES.find((category) => category.id === id)?.label ?? id,
-    ),
-  ]
-    .join(" ")
-    .toLowerCase()
-
-  return haystack.includes(needle)
+function normalize(value: string): string {
+  return value.replace(/\s+/g, " ").trim()
 }
 
 function categoryLabel(product: Product): string | null {
@@ -42,37 +33,39 @@ function categoryLabel(product: Product): string | null {
   return CATEGORIES.find((category) => category.id === id)?.label ?? id
 }
 
-export default function ProductSearch({ products, onSearchResults }: ProductSearchProps) {
+export default function ProductSearch({
+  value,
+  resultQuery,
+  results,
+  isPending,
+  onChange,
+}: ProductSearchProps) {
   const router = useRouter()
   const rootRef = useRef<HTMLDivElement>(null)
-  const [searchTerm, setSearchTerm] = useState("")
-  const [suggestions, setSuggestions] = useState<Product[]>([])
-  const [isLoading, setIsLoading] = useState(false)
+  const lastValue = useRef(value)
+  const [searchTerm, setSearchTerm] = useState(value)
   const [showSuggestions, setShowSuggestions] = useState(false)
   const [activeIndex, setActiveIndex] = useState(-1)
 
-  const term = searchTerm.trim()
+  const term = normalize(searchTerm)
+  const synced = term.length > 0 && term === resultQuery
+  const suggestions = synced ? results.slice(0, SUGGESTION_LIMIT) : []
+  const searching = term.length > 0 && (isPending || term !== resultQuery)
 
-  // Debounce the filtering so a fast typist only triggers one update.
+  // Follow external URL changes (back/forward, reset) without overwriting a
+  // term the shopper has typed while the previous query is still in flight.
   useEffect(() => {
-    if (!term) {
-      setSuggestions([])
-      setIsLoading(false)
-      onSearchResults(products)
-      return
-    }
+    const previous = lastValue.current
+    lastValue.current = value
+    setSearchTerm((current) => (normalize(current) === previous ? value : current))
+  }, [value])
 
-    setIsLoading(true)
-    const timer = setTimeout(() => {
-      const next = products.filter((product) => matches(product, term))
-      setSuggestions(next.slice(0, SUGGESTION_LIMIT))
-      setActiveIndex(-1)
-      setIsLoading(false)
-      onSearchResults(next)
-    }, DEBOUNCE_MS)
-
+  // Debounce so a fast typist triggers one server query, not one per key.
+  useEffect(() => {
+    if (term === normalize(value)) return
+    const timer = setTimeout(() => onChange(term), term ? DEBOUNCE_MS : 0)
     return () => clearTimeout(timer)
-  }, [term, products, onSearchResults])
+  }, [term, value, onChange])
 
   // Close the popover when clicking anywhere outside the search box.
   useEffect(() => {
@@ -91,7 +84,8 @@ export default function ProductSearch({ products, onSearchResults }: ProductSear
   const open = showSuggestions && term.length > 0
 
   const goToProduct = (product: Product) => {
-    setSearchTerm(product.name)
+    // Do not update the input here: that would schedule a debounced search
+    // commit and could replace the product navigation.
     setShowSuggestions(false)
     setActiveIndex(-1)
     router.push(`/products/${product.id}`)
@@ -111,8 +105,11 @@ export default function ProductSearch({ products, onSearchResults }: ProductSear
       if (activeIndex >= 0 && suggestions[activeIndex]) {
         goToProduct(suggestions[activeIndex])
       } else {
-        // The catalog is filtered in place, so Enter just commits the search.
+        // Submit immediately instead of waiting for the debounce.
+        onChange(term)
+        lastValue.current = term
         setShowSuggestions(false)
+        setActiveIndex(-1)
       }
     } else if (event.key === "Escape") {
       setShowSuggestions(false)
@@ -140,12 +137,12 @@ export default function ProductSearch({ products, onSearchResults }: ProductSear
           aria-controls={suggestionListId}
           aria-autocomplete="list"
           aria-activedescendant={activeOptionId}
-          aria-busy={isLoading}
+          aria-busy={searching}
           value={searchTerm}
           onChange={(event) => {
-            const value = event.target.value
-            setSearchTerm(value)
-            setShowSuggestions(value.trim().length > 0)
+            const next = event.target.value
+            setSearchTerm(next)
+            setShowSuggestions(normalize(next).length > 0)
             setActiveIndex(-1)
           }}
           onFocus={() => {
@@ -156,7 +153,7 @@ export default function ProductSearch({ products, onSearchResults }: ProductSear
           aria-label="Search products, brands, or categories"
           className="h-11 w-full rounded-full border border-input bg-white pl-10 pr-10 text-sm text-midnight placeholder:text-muted-foreground focus-visible:outline-2"
         />
-        {isLoading && (
+        {searching && (
           <Loader2
             className="absolute right-3.5 top-1/2 h-4 w-4 -translate-y-1/2 animate-spin text-glacier"
             aria-hidden="true"
@@ -207,9 +204,12 @@ export default function ProductSearch({ products, onSearchResults }: ProductSear
               </li>
             ))}
           </ul>
-          {suggestions.length === 0 && (
+          {searching && (
+            <p className="px-4 py-3 text-sm text-muted-foreground">Searching…</p>
+          )}
+          {!searching && synced && suggestions.length === 0 && (
             <p className="px-4 py-3 text-sm text-muted-foreground">
-              No products match “{searchTerm.trim()}”.
+              No products match “{term}”.
             </p>
           )}
         </div>
