@@ -62,9 +62,10 @@ export default function ProductTable({ products }: { products: Product[] }) {
             All products in Supabase with links to edit or delete each record
           </caption>
           <colgroup>
-            <col className="w-[13%]" />
             <col className="w-[9%]" />
-            <col className="w-[22%]" />
+            <col className="w-[7%]" />
+            <col className="w-[9%]" />
+            <col className="w-[19%]" />
             <col className="w-[8%]" />
             <col className="w-[7%]" />
             <col className="w-[6%]" />
@@ -76,6 +77,7 @@ export default function ProductTable({ products }: { products: Product[] }) {
           <thead className="bg-muted/60 text-xs uppercase tracking-wide text-muted-foreground">
             <tr>
               <th scope="col" className="px-3 py-2 font-semibold">ID</th>
+              <th scope="col" className="px-2 py-2 font-semibold">Image</th>
               <th scope="col" className="px-3 py-2 font-semibold">Brand</th>
               <th scope="col" className="px-3 py-2 font-semibold">Name</th>
               <th scope="col" className="px-3 py-2 font-semibold">Store</th>
@@ -103,6 +105,15 @@ export default function ProductTable({ products }: { products: Product[] }) {
                   >
                     {product.id}
                   </span>
+                </td>
+                <td className="px-2 py-2">
+                  {/* Decorative: the brand and name sit in the next two cells. */}
+                  <img
+                    src={product.image}
+                    alt=""
+                    loading="lazy"
+                    className="h-10 w-10 rounded-md border border-border bg-white object-contain p-0.5"
+                  />
                 </td>
                 <td className="px-3 py-2 font-semibold text-midnight">
                   <span className="block overflow-hidden text-ellipsis">{product.brand}</span>
@@ -169,7 +180,7 @@ export default function ProductTable({ products }: { products: Product[] }) {
             ))}
             {products.length === 0 && (
               <tr>
-                <td colSpan={10} className="px-3 py-6 text-center text-muted-foreground">
+                <td colSpan={11} className="px-3 py-6 text-center text-muted-foreground">
                   No products yet.
                 </td>
               </tr>
