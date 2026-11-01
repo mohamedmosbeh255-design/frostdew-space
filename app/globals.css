@@ -42,7 +42,7 @@
 :root {
   color-scheme: light;
   --radius: 0.75rem;
-  --background: #f8fbff;
+  --background: #f9fafb;
   --foreground: #172d43;
   --card: #ffffff;
   --card-foreground: #172d43;
@@ -72,16 +72,16 @@
   body {
     @apply bg-background text-foreground font-sans antialiased;
     background-image:
-      radial-gradient(52rem 36rem at 8% -4%, rgba(220, 239, 252, 0.9), transparent 60%),
-      radial-gradient(44rem 32rem at 96% 4%, rgba(184, 217, 240, 0.55), transparent 62%),
-      radial-gradient(60rem 44rem at 50% 112%, rgba(220, 239, 252, 0.75), transparent 58%);
+      radial-gradient(52rem 36rem at 8% -4%, rgba(219, 234, 254, 0.8), transparent 60%),
+      radial-gradient(44rem 32rem at 96% 4%, rgba(237, 233, 254, 0.6), transparent 62%),
+      radial-gradient(60rem 44rem at 50% 112%, rgba(224, 231, 255, 0.55), transparent 58%);
     background-attachment: fixed;
   }
   ::selection {
-    background: rgba(184, 217, 240, 0.65);
+    background: rgba(59, 130, 246, 0.25);
   }
   :focus-visible {
-    outline: 2px solid #294a67;
+    outline: 2px solid var(--color-primary-600, #2563eb);
     outline-offset: 2px;
   }
 }
@@ -120,8 +120,8 @@ section[id] {
 }
 .card-lift:hover {
   transform: translateY(-4px);
-  border-color: #b8d9f0;
-  box-shadow: 0 20px 44px rgba(23, 45, 67, 0.14);
+  border-color: color-mix(in srgb, var(--color-primary-500, #3b82f6) 30%, white);
+  box-shadow: 0 20px 44px rgba(37, 99, 235, 0.12);
 }
 
 .no-scrollbar {

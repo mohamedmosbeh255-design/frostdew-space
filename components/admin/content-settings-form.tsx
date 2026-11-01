@@ -384,7 +384,7 @@ export default function ContentSettingsForm({ initialContent }: { initialContent
                   type="button"
                   onClick={() => setActiveSeason(editingSeason)}
                   disabled={!media.url}
-                  className="inline-flex items-center justify-center rounded-full bg-amber-cta px-4 py-2 text-xs font-bold text-midnight transition-colors hover:bg-[#f0b252] disabled:opacity-60"
+                  className="inline-flex items-center justify-center rounded-full bg-amber-cta px-4 py-2 text-xs font-bold text-midnight transition-colors hover:bg-amber-cta/90 disabled:opacity-60"
                 >
                   Use {HERO_SEASON_LABELS[editingSeason]} as live
                 </button>
@@ -593,7 +593,7 @@ export default function ContentSettingsForm({ initialContent }: { initialContent
         <button
           type="submit"
           disabled={pending}
-          className="inline-flex items-center justify-center rounded-full bg-amber-cta px-5 py-2.5 text-sm font-bold text-midnight transition-colors hover:bg-[#f0b252] disabled:opacity-60"
+          className="inline-flex items-center justify-center rounded-full bg-amber-cta px-5 py-2.5 text-sm font-bold text-midnight transition-colors hover:bg-amber-cta/90 disabled:opacity-60"
         >
           {pending ? "Saving…" : "Save content"}
         </button>

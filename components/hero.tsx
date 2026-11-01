@@ -99,7 +99,7 @@ export default function Hero({ content }: { content: SiteContent["hero"] }) {
         )}
       </div>
 
-      <div className="absolute inset-0 bg-winter opacity-[0.16]" aria-hidden="true" />
+      <div className="absolute inset-0 bg-primary-700 opacity-[0.16]" aria-hidden="true" />
       <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-b from-transparent to-snow" aria-hidden="true" />
       <div className="absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-midnight/30 to-transparent" aria-hidden="true" />
 
@@ -130,7 +130,7 @@ export default function Hero({ content }: { content: SiteContent["hero"] }) {
         </p>
         <a
           href={content.ctaHref}
-          className="animate-brand-in mt-9 inline-flex items-center rounded-full border border-white/70 bg-white/15 px-7 py-3 text-sm font-semibold tracking-wide text-white backdrop-blur-md transition-colors hover:bg-white hover:text-winter"
+          className="animate-brand-in mt-9 inline-flex items-center rounded-full border border-white/70 bg-white/15 px-7 py-3 text-sm font-semibold tracking-wide text-white shadow-soft backdrop-blur-md transition-colors hover:bg-white hover:text-primary-700"
           style={{ animationDelay: "0.95s" }}
         >
           {content.ctaLabel}
@@ -140,7 +140,7 @@ export default function Hero({ content }: { content: SiteContent["hero"] }) {
       <a
         href="#shop"
         aria-label="Scroll to products"
-        className="absolute inset-x-0 bottom-8 flex flex-col items-center gap-1 text-winter"
+        className="absolute inset-x-0 bottom-8 flex flex-col items-center gap-1 text-primary-700"
         style={{ opacity: "clamp(0, calc(1 - var(--scroll-p, 0) * 4), 1)" }}
       >
         <ChevronDown className="animate-cue-float h-5 w-5" />

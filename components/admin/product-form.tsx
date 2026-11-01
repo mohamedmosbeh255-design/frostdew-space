@@ -301,7 +301,7 @@ function TextField({
         <p
           id={`${id}-warning`}
           role="alert"
-          className="rounded-md bg-amber-cta/10 px-2 py-1 text-xs font-semibold text-[#8a5a12]"
+          className="rounded-md bg-amber-cta/10 px-2 py-1 text-xs font-semibold text-amber-800"
         >
           {warning}
         </p>
@@ -985,12 +985,12 @@ export default function ProductForm({
           type="submit"
           disabled={pending || saveBlocked}
           aria-describedby={saveBlocked ? "save-blocked-reason" : undefined}
-          className="inline-flex items-center justify-center rounded-full bg-amber-cta px-5 py-2.5 text-sm font-bold text-midnight transition-colors hover:bg-[#f0b252] disabled:cursor-not-allowed disabled:opacity-60"
+          className="inline-flex items-center justify-center rounded-full bg-amber-cta px-5 py-2.5 text-sm font-bold text-midnight transition-colors hover:bg-amber-cta/90 disabled:cursor-not-allowed disabled:opacity-60"
         >
           {pending ? "Saving…" : mode === "create" ? "Create product" : "Save changes"}
         </button>
         {saveBlocked && (
-          <p id="save-blocked-reason" role="status" className="text-xs font-semibold text-[#8a5a12]">
+          <p id="save-blocked-reason" role="status" className="text-xs font-semibold text-amber-800">
             {nameMatch || errors.name === DUPLICATE_NAME_MESSAGE
               ? "Change the brand or name to save."
               : "Resolve the duplicate ID to save."}

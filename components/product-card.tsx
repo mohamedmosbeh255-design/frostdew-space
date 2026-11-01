@@ -112,7 +112,7 @@ export function ProductImage({
 export function BuyLink({ product, className }: { product: Product; className?: string }) {
   const links = getProductStoreLinks(product)
   const primaryClass =
-    "bg-amber-cta text-midnight hover:bg-[#f0b252]"
+    "bg-amber-cta text-midnight hover:bg-amber-cta/90"
   const secondaryClass = "border border-border bg-white text-winter hover:bg-ice"
 
   return (
@@ -151,7 +151,7 @@ export default function ProductCard({
   const addedLabel = product.addedDate ? formatAddedDateFull(product.addedDate) : null
 
   return (
-    <article className="card-lift group flex h-full flex-col overflow-hidden rounded-2xl border border-border bg-card">
+    <article className="card-lift group flex h-full flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-soft">
       <button
         type="button"
         onClick={() => onOpen(product)}
@@ -171,7 +171,7 @@ export default function ProductCard({
           )}
         </div>
         <div className="flex flex-1 flex-col gap-1.5 p-5">
-          <p className="text-[0.7rem] font-bold uppercase tracking-[0.18em] text-glacier">{product.brand}</p>
+          <p className="text-[0.7rem] font-bold uppercase tracking-[0.18em] text-primary-600">{product.brand}</p>
           <h3 className="line-clamp-2 font-display text-lg font-medium leading-snug text-midnight">
             {product.name}
           </h3>
@@ -202,7 +202,7 @@ export default function ProductCard({
         <BuyLink product={product} className="w-full" />
         <Link
           href={`/products/${product.id}`}
-          className="text-center text-xs font-semibold text-winter underline decoration-frost underline-offset-2 transition-colors hover:text-midnight"
+          className="text-center text-xs font-semibold text-primary-600 underline decoration-primary-500/40 underline-offset-2 transition-colors hover:text-primary-700"
         >
           Full product details
         </Link>

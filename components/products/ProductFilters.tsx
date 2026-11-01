@@ -127,7 +127,7 @@ export default function ProductFilters({
               onTouchEnd={commitPrice}
               onKeyUp={commitPrice}
               onBlur={commitPrice}
-              className="mt-4 w-full accent-[var(--color-winter,#294a67)]"
+              className="mt-4 w-full accent-winter"
             />
           </div>
         )}

@@ -82,7 +82,7 @@ export default function ContactForm() {
 
       <button
         type="submit"
-        className="mt-1 inline-flex items-center justify-center gap-2 rounded-full bg-amber-cta px-6 py-3 text-sm font-bold text-midnight transition-colors hover:bg-[#f0b252] focus-visible:outline-2"
+        className="mt-1 inline-flex items-center justify-center gap-2 rounded-full bg-amber-cta px-6 py-3 text-sm font-bold text-midnight transition-colors hover:bg-amber-cta/90 focus-visible:outline-2"
       >
         <Send className="h-4 w-4" aria-hidden="true" />
         Open in email app

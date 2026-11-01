@@ -22,7 +22,7 @@ export default async function AdminProductsPage() {
         </div>
         <Link
           href="/admin/add"
-          className="inline-flex items-center justify-center rounded-full bg-amber-cta px-4 py-2.5 text-sm font-bold text-midnight transition-colors hover:bg-[#f0b252]"
+          className="inline-flex items-center justify-center rounded-full bg-amber-cta px-4 py-2.5 text-sm font-bold text-midnight transition-colors hover:bg-amber-cta/90"
         >
           Add new product
         </Link>
