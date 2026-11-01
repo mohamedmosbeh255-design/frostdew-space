@@ -9,6 +9,7 @@ import {
   readProducts,
 } from "@/lib/admin/products-store"
 import { findDuplicateProduct, validateProductRecord } from "@/lib/product-rules.mjs"
+import { InvalidSalePriceError } from "@/lib/product-row.mjs"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -87,6 +88,17 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ ok: true, product: saved, warnings }, { status: 201 })
   } catch (error) {
+    if (error instanceof InvalidSalePriceError) {
+      return NextResponse.json(
+        {
+          error: "Invalid sale price.",
+          field: "salePrice",
+          errors: [error.message],
+        },
+        { status: 400 },
+      )
+    }
+
     if (error instanceof ProductConflictError) {
       return NextResponse.json(
         {
