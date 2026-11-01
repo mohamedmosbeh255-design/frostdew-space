@@ -23,7 +23,7 @@ export default function LegalPage({
       />
 
       <div className="relative mx-auto max-w-3xl px-6 py-16 sm:py-20">
-        <p className="text-xs font-bold uppercase tracking-[0.4em] text-glacier">{eyebrow}</p>
+        <p className="text-xs font-bold uppercase tracking-[0.4em] text-secondary-600">{eyebrow}</p>
         <h1 className="mt-4 font-display text-4xl font-medium leading-tight text-midnight sm:text-5xl">
           {title}
         </h1>

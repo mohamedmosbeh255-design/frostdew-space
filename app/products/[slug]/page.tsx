@@ -136,7 +136,7 @@ export default async function ProductPage({ params }: Props) {
         <div className="relative mx-auto max-w-6xl px-6 py-10 sm:py-14">
           <Link
             href="/#shop"
-            className="inline-flex items-center gap-2 text-sm font-semibold text-winter transition-colors hover:text-midnight"
+            className="inline-flex items-center gap-2 text-sm font-semibold text-primary-600 transition-colors hover:text-primary-700"
           >
             <ArrowLeft className="h-4 w-4" aria-hidden="true" />
             Back to the collection
@@ -149,7 +149,7 @@ export default async function ProductPage({ params }: Props) {
 
             <div className="flex flex-col gap-5">
               <div>
-                <p className="text-xs font-bold uppercase tracking-[0.2em] text-glacier">
+                <p className="text-xs font-bold uppercase tracking-[0.2em] text-primary-600">
                   {product.brand}
                 </p>
                 <h1 className="mt-2 font-display text-3xl font-medium leading-snug text-midnight sm:text-4xl">
@@ -182,7 +182,7 @@ export default async function ProductPage({ params }: Props) {
                   {categoryLabels.map((label) => (
                     <span
                       key={label}
-                      className="rounded-full border border-border bg-white px-3 py-1 text-xs font-semibold text-winter"
+                      className="rounded-full border border-secondary-500/30 bg-secondary-50 px-3 py-1 text-xs font-semibold text-secondary-700"
                     >
                       {label}
                     </span>

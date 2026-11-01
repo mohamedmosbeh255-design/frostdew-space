@@ -75,7 +75,15 @@ export default function ProductFilters({
       className="rounded-2xl border border-border bg-white/80 p-5 shadow-sm"
     >
       <div className="flex items-center justify-between gap-3">
-        <h3 className="font-display text-lg text-midnight">Filters</h3>
+        <h3 className="flex items-center gap-2 font-display text-lg text-midnight">
+          Filters
+          {active && (
+            <span
+              className="inline-block h-2 w-2 rounded-full bg-accent-500"
+              aria-hidden="true"
+            />
+          )}
+        </h3>
         {active && (
           <button
             type="button"
@@ -143,8 +151,8 @@ export default function ProductFilters({
               onClick={() => onChange({ ...value, rating: 0 })}
               className={`h-8 rounded-lg px-2.5 text-xs font-bold transition-colors ${
                 value.rating === 0
-                  ? "bg-winter text-snow"
-                  : "border border-border bg-white text-winter hover:bg-ice"
+                  ? "bg-primary-600 text-white"
+                  : "border border-border bg-white text-primary-700 hover:bg-primary-50"
               }`}
             >
               Any
@@ -158,8 +166,8 @@ export default function ProductFilters({
                 onClick={() => onChange({ ...value, rating })}
                 className={`inline-flex h-8 items-center gap-0.5 rounded-lg px-2 text-xs font-bold transition-colors ${
                   value.rating === rating
-                    ? "bg-amber-cta text-midnight"
-                    : "border border-border bg-white text-winter hover:bg-ice"
+                    ? "bg-secondary-600 text-white"
+                    : "border border-border bg-white text-secondary-700 hover:bg-secondary-50"
                 }`}
               >
                 {rating}

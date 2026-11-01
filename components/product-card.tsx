@@ -71,7 +71,7 @@ export function PriceTag({
     <div className="flex flex-wrap items-center gap-2">
       <p className={prominentClass}>{formatPrice(product.salePrice)}</p>
       <p className={originalClass}>{formatPrice(product.price)}</p>
-      <span className="glass-chip inline-flex items-center rounded-full px-2 py-0.5 text-[0.65rem] font-bold uppercase tracking-[0.14em] text-winter">
+      <span className="inline-flex items-center rounded-full bg-secondary-600 px-2 py-0.5 text-[0.65rem] font-bold uppercase tracking-[0.14em] text-white">
         -{percent}%
       </span>
     </div>
@@ -111,9 +111,12 @@ export function ProductImage({
 
 export function BuyLink({ product, className }: { product: Product; className?: string }) {
   const links = getProductStoreLinks(product)
+  // Accent-700 keeps white label text above the 4.5:1 contrast threshold
+  // (accent-500 would not), while still reading as an urgent commerce CTA.
   const primaryClass =
-    "bg-amber-cta text-midnight hover:bg-amber-cta/90"
-  const secondaryClass = "border border-border bg-white text-winter hover:bg-ice"
+    "bg-accent-700 text-white hover:bg-accent-700/90"
+  const secondaryClass =
+    "border border-secondary-500/40 bg-white text-secondary-700 hover:bg-secondary-50"
 
   return (
     <div className={`flex flex-col gap-2 ${className ?? ""}`}>
@@ -165,7 +168,7 @@ export default function ProductCard({
             imageClassName="h-full w-full object-contain p-4 transition-transform duration-500 ease-out group-hover:scale-[1.04]"
           />
           {product.bestseller && (
-            <span className="glass-chip absolute left-3 top-3 rounded-full px-3 py-1 text-[0.65rem] font-bold uppercase tracking-[0.14em] text-winter">
+            <span className="absolute left-3 top-3 rounded-full bg-accent-700 px-3 py-1 text-[0.65rem] font-bold uppercase tracking-[0.14em] text-white shadow-soft">
               Bestseller
             </span>
           )}

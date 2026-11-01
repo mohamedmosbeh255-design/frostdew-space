@@ -28,7 +28,7 @@ export default async function ContactPage() {
         />
 
         <div className="relative mx-auto max-w-5xl px-6 py-16 sm:py-20">
-          <p className="text-xs font-bold uppercase tracking-[0.4em] text-glacier">Say Hello</p>
+          <p className="text-xs font-bold uppercase tracking-[0.4em] text-secondary-600">Say Hello</p>
           <h1 className="mt-4 font-display text-4xl font-medium leading-tight text-midnight sm:text-5xl">
             Contact FrostDew
           </h1>

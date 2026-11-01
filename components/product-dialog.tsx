@@ -68,7 +68,7 @@ export default function ProductDialog({
           </button>
           <ProductGallery product={product} />
           <div className="flex flex-col gap-4 p-6 sm:p-8">
-            <p className="text-xs font-bold uppercase tracking-[0.2em] text-glacier">{product.brand}</p>
+            <p className="text-xs font-bold uppercase tracking-[0.2em] text-primary-600">{product.brand}</p>
             <h2 id="product-dialog-title" className="font-display text-2xl font-medium leading-snug sm:text-3xl">
               {product.name}
             </h2>

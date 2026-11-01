@@ -142,7 +142,7 @@ export default function Shop({
     <section id="shop" aria-labelledby="shop-title" className="relative py-20 sm:py-24">
       <div className="mx-auto max-w-7xl px-6">
         <div className="mx-auto max-w-2xl text-center">
-          <p className="mb-3 text-xs font-bold uppercase tracking-[0.4em] text-glacier">The Collection</p>
+          <p className="mb-3 text-xs font-bold uppercase tracking-[0.4em] text-secondary-600">The Collection</p>
           <h2 id="shop-title" className="font-display text-4xl font-medium text-midnight sm:text-5xl">
             Korean skincare, curated
           </h2>
@@ -194,7 +194,7 @@ export default function Shop({
               <button
                 type="button"
                 onClick={reset}
-                className="inline-flex items-center gap-2 rounded-full bg-winter px-5 py-2.5 text-sm font-bold text-snow hover:bg-midnight"
+                className="inline-flex items-center gap-2 rounded-full bg-primary-700 px-5 py-2.5 text-sm font-bold text-white shadow-soft hover:bg-primary-600"
               >
                 <X className="h-4 w-4" aria-hidden="true" /> Clear search &amp; filters
               </button>
@@ -212,7 +212,7 @@ export default function Shop({
               <button
                 type="button"
                 onClick={() => setVisibleCount((n) => n + PAGE_SIZE)}
-                className="rounded-full border border-winter px-8 py-3 text-sm font-bold text-winter transition-colors hover:bg-winter hover:text-snow"
+                className="rounded-full border border-secondary-600 px-8 py-3 text-sm font-bold text-secondary-700 transition-colors hover:bg-secondary-600 hover:text-white"
               >
                 Show more products
               </button>
