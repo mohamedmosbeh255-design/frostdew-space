@@ -96,7 +96,7 @@ export default function TermsPage() {
         {/* PLACEHOLDER: Replace with the confirmed jurisdiction before publishing. */}
         <p>
           These terms are governed by the laws of{" "}
-          <strong>[Governing jurisdiction — to be confirmed]</strong>, without regard to conflict
+          <strong>California, United States</strong>, without regard to conflict
           of law principles. Any dispute will be handled by the courts of that jurisdiction.
         </p>
 
