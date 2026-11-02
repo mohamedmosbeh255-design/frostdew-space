@@ -80,6 +80,30 @@ export function normalizeProductInput(body: unknown): Product {
     if (Object.keys(links).length > 0) out.affiliateLinks = links
   }
 
+  if (Object.hasOwn(body, "storePricing")) {
+    const value = body.storePricing
+    if (!Array.isArray(value)) {
+      throw new InvalidInputError("storePricing must be an array of store price rows.")
+    }
+
+    // Trim strings here; numeric and structural checks belong to the shared
+    // validator so every bad row is reported instead of only the first.
+    out.storePricing = value.map((entry) => {
+      if (!isRecord(entry)) return entry
+      const price = entry.price
+      return {
+        store: typeof entry.store === "string" ? entry.store.trim() : entry.store,
+        price:
+          typeof price === "string" && price.trim() !== "" ? Number(price) : price,
+        currency:
+          typeof entry.currency === "string"
+            ? entry.currency.trim().toUpperCase()
+            : entry.currency,
+        url: typeof entry.url === "string" ? entry.url.trim() : entry.url,
+      }
+    })
+  }
+
   if (Object.hasOwn(body, "relatedProducts")) {
     const value = body.relatedProducts
     if (!Array.isArray(value)) {

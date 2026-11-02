@@ -8,6 +8,7 @@ import {
   ADDED_DATE_PATTERN,
   ALLOWED_CATEGORIES,
   ALLOWED_STORES,
+  CURRENCY_OPTIONS,
   MAX_EXTRA_PRODUCT_IMAGES,
   PRICE_PATTERN,
   isValidImageSource,
@@ -28,6 +29,24 @@ import RelatedProductsPicker, {
 } from "./related-products-picker"
 
 type Mode = "create" | "edit"
+
+/** A "Store Pricing" row while it is being edited: every value is a string. */
+type StorePricingRow = {
+  store: string
+  price: string
+  currency: string
+  url: string
+}
+
+const EMPTY_STORE_PRICING_ROW: StorePricingRow = {
+  store: "",
+  price: "",
+  currency: "USD",
+  url: "",
+}
+
+const isBlankStorePricingRow = (row: StorePricingRow): boolean =>
+  !row.store.trim() && !row.price.trim() && !row.url.trim()
 
 const DUPLICATE_NAME_MESSAGE = "A product with this name already exists."
 const DUPLICATE_ID_MESSAGE = "A product with this ID already exists."
@@ -52,6 +71,7 @@ type FormState = {
   reviewCount: string
   addedDate: string
   affiliateLinks: Record<StoreLinkKey, string>
+  storePricing: StorePricingRow[]
   relatedProducts: string[]
 }
 
@@ -96,6 +116,12 @@ const toInitialState = (product?: Product): FormState => ({
     amazonUk: product?.affiliateLinks?.amazonUk ?? "",
     stylevana: product?.affiliateLinks?.stylevana ?? "",
   },
+  storePricing: (product?.storePricing ?? []).map((entry) => ({
+    store: entry.store,
+    price: String(entry.price),
+    currency: entry.currency,
+    url: entry.url,
+  })),
   relatedProducts: product?.relatedProducts ? [...product.relatedProducts] : [],
 })
 
@@ -219,6 +245,34 @@ function validate(values: FormState): Record<string, string> {
       seenUrls.set(url.href, STORE_LINK_META[key].label)
     }
   }
+
+  // Comparison prices: ignore fully blank rows, validate the rest. The server
+  // repeats these rules as the source of truth.
+  values.storePricing.forEach((row, index) => {
+    if (isBlankStorePricingRow(row)) return
+
+    const field = `storePricing.${index}`
+    if (!row.store.trim()) {
+      errors[`${field}.store`] = "Enter a store name."
+    }
+
+    const price = row.price.trim()
+    if (!price) {
+      errors[`${field}.price`] = "Enter a price."
+    } else if (!/^\d+(?:\.\d{1,2})?$/.test(price) || Number(price) < 0) {
+      errors[`${field}.price`] = "Use a number, e.g. 24.99."
+    }
+
+    if (!/^[A-Z]{3}$/.test(row.currency)) {
+      errors[`${field}.currency`] = "Choose a currency."
+    }
+
+    if (!row.url.trim()) {
+      errors[`${field}.url`] = "Enter the store URL."
+    } else if (!isHttps(row.url.trim())) {
+      errors[`${field}.url`] = "Enter an https URL."
+    }
+  })
 
   return errors
 }
@@ -402,6 +456,62 @@ export default function ProductForm({
     }))
   }
 
+  const updateStorePricing = (
+    index: number,
+    field: keyof StorePricingRow,
+    value: string,
+  ) => {
+    setValues((current) => ({
+      ...current,
+      storePricing: current.storePricing.map((row, position) =>
+        position === index ? { ...row, [field]: value } : row,
+      ),
+    }))
+    setErrors((current) => {
+      const next = { ...current }
+      delete next[`storePricing.${index}.${field}`]
+      return next
+    })
+    setMessage(null)
+  }
+
+  const addStorePricing = () => {
+    setValues((current) => ({
+      ...current,
+      storePricing: [...current.storePricing, { ...EMPTY_STORE_PRICING_ROW }],
+    }))
+    setMessage(null)
+  }
+
+  const removeStorePricing = (index: number) => {
+    setValues((current) => ({
+      ...current,
+      storePricing: current.storePricing.filter((_, position) => position !== index),
+    }))
+    setErrors((current) => {
+      // Error keys are row indexes, so drop the removed row's entries and
+      // renumber the rows after it; otherwise later messages attach to the
+      // wrong row.
+      const prefix = "storePricing."
+      const next: Record<string, string> = {}
+      for (const [key, value] of Object.entries(current)) {
+        if (key.startsWith(`${prefix}${index}.`)) continue
+        if (key.startsWith(prefix)) {
+          const rest = key.slice(prefix.length)
+          const dot = rest.indexOf(".")
+          const rowIndex = Number(rest.slice(0, dot))
+          if (Number.isInteger(rowIndex) && rowIndex > index) {
+            next[`${prefix}${rowIndex - 1}${rest.slice(dot)}`] = value
+            continue
+          }
+        }
+        next[key] = value
+      }
+      return next
+    })
+    setMessage(null)
+  }
+
   const updateImage = (index: number, value: string) => {
     setValues((current) => ({
       ...current,
@@ -491,6 +601,16 @@ export default function ProductForm({
       if (value) affiliateLinks[key] = value
     }
     if (Object.keys(affiliateLinks).length > 0) payload.affiliateLinks = affiliateLinks
+
+    // Always sent, even when empty, so removing every row clears the column.
+    payload.storePricing = values.storePricing
+      .filter((row) => !isBlankStorePricingRow(row))
+      .map((row) => ({
+        store: row.store.trim(),
+        price: Number(row.price),
+        currency: row.currency,
+        url: row.url.trim(),
+      }))
 
     if (values.relatedProducts.length > 0) payload.relatedProducts = values.relatedProducts
 
@@ -931,6 +1051,128 @@ export default function ProductForm({
           />
           Bestseller
         </label>
+      </fieldset>
+
+      <fieldset className="rounded-2xl border border-border bg-card p-4 sm:p-5">
+        <legend className="px-1 text-sm font-bold text-midnight">Store Pricing</legend>
+        <p className="mt-2 text-xs text-muted-foreground">
+          Optional per-store prices shown in the &ldquo;Compare prices&rdquo; dialog on product
+          cards. The Store &amp; pricing fields above stay the primary/default store.
+        </p>
+
+        <div className="mt-3 flex flex-col gap-3">
+          {values.storePricing.length === 0 ? (
+            <p className="rounded-xl border border-dashed border-border bg-white/60 px-4 py-3 text-xs text-muted-foreground">
+              No comparison prices yet. Add a store to show the Compare prices button.
+            </p>
+          ) : (
+            values.storePricing.map((row, index) => {
+              const field = `storePricing.${index}`
+              const currencyOptions = CURRENCY_OPTIONS.includes(row.currency)
+                ? CURRENCY_OPTIONS
+                : [row.currency, ...CURRENCY_OPTIONS]
+
+              return (
+                <div
+                  key={index}
+                  className="rounded-xl border border-border bg-white/70 p-3"
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="text-[0.7rem] font-bold uppercase tracking-[0.2em] text-glacier">
+                      Store {index + 1}
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => removeStorePricing(index)}
+                      className="inline-flex items-center gap-1 text-xs font-semibold text-destructive underline-offset-2 transition-colors hover:underline"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
+                      Remove
+                    </button>
+                  </div>
+
+                  <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                    <TextField
+                      id={`storePricing-${index}-store`}
+                      label="Store name"
+                      value={row.store}
+                      onChange={(value) => updateStorePricing(index, "store", value)}
+                      error={errors[`${field}.store`]}
+                      placeholder="Amazon US"
+                    />
+                    <TextField
+                      id={`storePricing-${index}-price`}
+                      label="Price"
+                      value={row.price}
+                      onChange={(value) => updateStorePricing(index, "price", value)}
+                      error={errors[`${field}.price`]}
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      placeholder="24.99"
+                    />
+                    <div className="flex flex-col gap-1.5">
+                      <label
+                        htmlFor={`storePricing-${index}-currency`}
+                        className="text-xs font-semibold uppercase tracking-wide text-muted-foreground"
+                      >
+                        Currency
+                      </label>
+                      <select
+                        id={`storePricing-${index}-currency`}
+                        name={`storePricing-${index}-currency`}
+                        value={row.currency}
+                        onChange={(event) =>
+                          updateStorePricing(index, "currency", event.target.value)
+                        }
+                        aria-invalid={errors[`${field}.currency`] ? true : undefined}
+                        aria-describedby={
+                          errors[`${field}.currency`]
+                            ? `storePricing-${index}-currency-error`
+                            : undefined
+                        }
+                        className="w-full rounded-lg border border-border bg-white px-3 py-2 text-sm text-midnight outline-none focus-visible:ring-2 focus-visible:ring-glacier"
+                      >
+                        {currencyOptions.map((currency) => (
+                          <option key={currency} value={currency}>
+                            {currency}
+                          </option>
+                        ))}
+                      </select>
+                      {errors[`${field}.currency`] && (
+                        <p
+                          id={`storePricing-${index}-currency-error`}
+                          role="alert"
+                          className="text-xs font-medium text-destructive"
+                        >
+                          {errors[`${field}.currency`]}
+                        </p>
+                      )}
+                    </div>
+                    <TextField
+                      id={`storePricing-${index}-url`}
+                      label="Affiliate URL"
+                      value={row.url}
+                      onChange={(value) => updateStorePricing(index, "url", value)}
+                      error={errors[`${field}.url`]}
+                      type="url"
+                      placeholder="https://www.amazon.com/dp/…"
+                    />
+                  </div>
+                </div>
+              )
+            })
+          )}
+
+          <button
+            type="button"
+            onClick={addStorePricing}
+            className="inline-flex w-fit items-center gap-1.5 rounded-full border border-border bg-white px-4 py-2 text-xs font-semibold text-winter transition-colors hover:bg-ice"
+          >
+            <Plus className="h-3.5 w-3.5" aria-hidden="true" />
+            Add Store
+          </button>
+        </div>
       </fieldset>
 
       <fieldset className="rounded-2xl border border-border bg-card p-4 sm:p-5">
