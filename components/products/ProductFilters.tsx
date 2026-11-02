@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react"
 import { RotateCcw, Star } from "lucide-react"
-import { parsePrice } from "@/lib/format"
+import { formatNumber, parsePrice } from "@/lib/format"
 import { CATEGORIES, type Product } from "@/lib/products"
 import type { ShopFilters, ShopSort } from "@/lib/shop-params"
 
@@ -46,6 +46,20 @@ export default function ProductFilters({
     () => products.map(priceOf).filter((value): value is number => value !== null),
     [products],
   )
+
+  // The slider ceiling is the catalog's highest price, so label it with that
+  // product's currency instead of assuming dollars.
+  const currency = useMemo(() => {
+    let ceiling: { symbol: string; amount: number } | null = null
+    for (const product of products) {
+      const parsed = parsePrice(product.salePrice ?? product.price ?? "")
+      if (!parsed) continue
+      if (!ceiling || parsed.amount > ceiling.amount) {
+        ceiling = { symbol: parsed.currency, amount: parsed.amount }
+      }
+    }
+    return ceiling?.symbol ?? "$"
+  }, [products])
 
   // The slider is a draft while dragging; the server query runs on release so
   // a drag does not fire a request per pixel.
@@ -121,7 +135,7 @@ export default function ProductFilters({
         {prices.length > 0 && (
           <div>
             <label htmlFor="filter-price" className="text-xs font-bold uppercase tracking-[0.14em] text-glacier">
-              Max price: ${priceDraft}
+              Max price: {currency}{formatNumber(Math.round(priceDraft))}
             </label>
             <input
               id="filter-price"
