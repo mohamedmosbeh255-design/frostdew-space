@@ -65,6 +65,7 @@ const FILTER_COLUMNS = {
   reviewCount: "review_count",
   addedDate: "added_date",
   affiliateLinks: "affiliate_links",
+  storePricing: "store_pricing",
   relatedProducts: "related_products",
 } as const satisfies Record<keyof Product, string>
 

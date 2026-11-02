@@ -1,3 +1,15 @@
+/** One store's price, as stored in `products.store_pricing`. */
+export interface StorePrice {
+  /** Store name shown in the dialog, e.g. "Amazon UK". */
+  store: string
+  /** Amount in the store's currency, e.g. 22.99. */
+  price: number
+  /** ISO 4217 code, e.g. "USD" or "GBP". */
+  currency: string
+  /** Link to the product on that store. */
+  url: string
+}
+
 export interface Product {
   id: string
   brand: string
@@ -35,6 +47,11 @@ export interface Product {
     amazonUk?: string
     stylevana?: string
   }
+  /**
+   * Per-store prices shown in the "Compare prices" dialog. The legacy
+   * `store`/`price`/`salePrice` fields stay the primary default store.
+   */
+  storePricing?: StorePrice[]
   /** IDs of existing products to show under "You may also like". */
   relatedProducts?: string[]
 }

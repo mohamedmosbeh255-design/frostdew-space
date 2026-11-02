@@ -54,6 +54,8 @@ create table if not exists public.products (
   added_date         date,
   affiliate_links    jsonb not null default '{}'::jsonb
                        check (jsonb_typeof(affiliate_links) = 'object'),
+  store_pricing      jsonb not null default '[]'::jsonb
+                       check (jsonb_typeof(store_pricing) = 'array'),
   related_products   text[] not null default '{}'::text[],
   brand_key          text generated always as (
                        lower(btrim(regexp_replace(normalize(brand, NFKC), '[[:space:]]+', ' ', 'g')))
@@ -73,6 +75,8 @@ comment on table public.products is
   'FrostDew catalog. brand_key + name_key are generated from brand/name using the same normalization as lib/product-rules.mjs.';
 comment on column public.products.affiliate_links is
   'Optional store links: {"amazonUs": "...", "amazonUk": "...", "stylevana": "..."}';
+comment on column public.products.store_pricing is
+  'Per-store prices for the compare dialog: [{"store":"Amazon US","price":24.99,"currency":"USD","url":"..."}]';
 
 -- brand_key/name_key are stored generated columns: NFKC, collapse whitespace,
 -- lowercase — the same normalization as lib/product-rules.mjs. Because they are

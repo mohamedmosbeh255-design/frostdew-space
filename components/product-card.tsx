@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { useState } from "react"
-import { ExternalLink, Star } from "lucide-react"
+import { ExternalLink, Scale, Star } from "lucide-react"
 import {
   discountPercent,
   formatAddedDateFull,
@@ -13,6 +13,7 @@ import {
 import { type Product } from "@/lib/products"
 import { getProductStoreLinks } from "@/lib/store-links"
 import OptimizedImage from "@/components/ui/OptimizedImage"
+import ComparePricesDialog from "./compare-prices-dialog"
 
 export function Rating({ rating, reviewCount }: { rating: number; reviewCount?: number }) {
   const filled = Math.round(rating)
@@ -153,6 +154,11 @@ export default function ProductCard({
   // to leak full ISO timestamps into the card.
   const addedLabel = product.addedDate ? formatAddedDateFull(product.addedDate) : null
 
+  // The dialog is only useful once a product has comparison prices; without
+  // them the card keeps its single-store buy link.
+  const comparisons = product.storePricing ?? []
+  const [compareOpen, setCompareOpen] = useState(false)
+
   return (
     <article className="card-lift group flex h-full flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-soft">
       <button
@@ -203,6 +209,17 @@ export default function ProductCard({
       </button>
       <div className="mt-auto flex flex-col gap-2 px-5 pb-5">
         <BuyLink product={product} className="w-full" />
+        {comparisons.length > 0 && (
+          <button
+            type="button"
+            onClick={() => setCompareOpen(true)}
+            aria-haspopup="dialog"
+            className="inline-flex items-center justify-center gap-2 rounded-full border border-primary-500/40 bg-white px-3 py-2 text-sm font-bold text-primary-700 transition-colors hover:bg-primary-50"
+          >
+            <Scale className="h-3.5 w-3.5" aria-hidden="true" />
+            Compare prices
+          </button>
+        )}
         <Link
           href={`/products/${product.id}`}
           className="text-center text-xs font-semibold text-primary-600 underline decoration-primary-500/40 underline-offset-2 transition-colors hover:text-primary-700"
@@ -210,6 +227,14 @@ export default function ProductCard({
           Full product details
         </Link>
       </div>
+      {comparisons.length > 0 && (
+        <ComparePricesDialog
+          productName={`${product.brand} ${product.name}`}
+          prices={comparisons}
+          open={compareOpen}
+          onClose={() => setCompareOpen(false)}
+        />
+      )}
     </article>
   )
 }
