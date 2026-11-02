@@ -93,7 +93,6 @@ export default function TermsPage() {
         </p>
 
         <h2>Governing law</h2>
-        {/* PLACEHOLDER: Replace with the confirmed jurisdiction before publishing. */}
         <p>
           These terms are governed by the laws of{" "}
           <strong>California, United States</strong>, without regard to conflict
