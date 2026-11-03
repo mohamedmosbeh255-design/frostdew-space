@@ -2,7 +2,8 @@
 
 The `/admin` area is a **prototype CMS**, not a finished production admin. Products, site
 settings, and partner links live in **Supabase**; the app reads them at request time and writes
-through server-only API routes that use the secret (service-role) key.
+through server-only API routes that use the secret (service-role) key. Trending research is the
+exception: it reads a manually maintained static JSON file and never writes to the database.
 
 ## Local setup
 
@@ -38,6 +39,7 @@ returns `503`. There is deliberately no built-in default password.
 | `/admin/add` | Create form |
 | `/admin/edit/[id]` | Edit form (the `id` is immutable) |
 | `/admin/settings` | Content manager (including hero seasons), social media, and partner links stored in `site_settings` and `partners` |
+| `/admin/trending` | Manual research board over `data/trending.json` (no live sources, no auto-publish) |
 | `POST /api/admin/login` | Password → signed session cookie |
 | `POST /api/admin/logout` | Clears the cookie |
 | `GET/POST /api/admin/products` | List / create |
@@ -53,6 +55,26 @@ writes go through `getSupabaseAdminClient()`, which is server-only.
 Product writes are individual row inserts/updates/deletes, not file rewrites, so two admins
 touching different products no longer clobber each other.
 
+## Trending products research
+
+`/admin/trending` is a read-only research board over `data/trending.json`. Update the file by
+hand, then redeploy. Each product needs a `weeks` array of `{ "week": "YYYY-MM-DD", "score": 0-100 }`
+entries; six weekly points are used by the seeded examples.
+
+- The page reads only that JSON file. It does not call Google Trends, Amazon APIs, or any other
+  live source at runtime.
+- Every product defaults to **Needs manual review**. **Verified** is a browser-local note stored
+  in `localStorage` after the confirmation prompt. It never changes the JSON, Supabase, or the
+  storefront.
+- Analysis is deterministic and runs only when **Analyze** is pressed. The last five analyses are
+  stored in `localStorage` with timestamps. Verification and analysis history are per browser,
+  not per admin account.
+- Select products to copy a JSON snippet matching the Add Product payload (`id`, `brand`, `name`,
+  `fullName`, `categories`, `short`, `description`, `features`, `image`, `url`, `store`,
+  `bestseller`). One selection copies an object; multiple selections copy an array. Nothing is
+  created or published automatically.
+- The list shows five products per page, images are lazy-loaded, and no analysis runs on page
+  load.
 
 ## Duplicate products
 

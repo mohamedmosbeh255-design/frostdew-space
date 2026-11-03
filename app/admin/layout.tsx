@@ -63,8 +63,9 @@ export default async function AdminLayout({ children }: { children: React.ReactN
               <AdminNav />
             </div>
             <p className="mt-4 px-4 text-[0.62rem] leading-relaxed text-muted-foreground">
-              Changes are written straight to Supabase. Public reads are RLS-limited; writes use
-              the server-only service-role key.
+              Catalog and settings changes are written straight to Supabase; writes use the
+              server-only service-role key. Trending research never writes — its checks and history
+              stay in this browser.
             </p>
           </aside>
         )}

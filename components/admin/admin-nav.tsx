@@ -2,11 +2,17 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { Package, PlusCircle, Settings2 } from "lucide-react"
+import { Package, PlusCircle, Settings2, TrendingUp } from "lucide-react"
 
 const ITEMS = [
   { href: "/admin", label: "Products", icon: Package, match: /^\/admin(\/(edit)(\/|$)|$)/ },
   { href: "/admin/add", label: "Add product", icon: PlusCircle, match: /^\/admin\/add(\/|$)/ },
+  {
+    href: "/admin/trending",
+    label: "Trending research",
+    icon: TrendingUp,
+    match: /^\/admin\/trending(\/|$)/,
+  },
   { href: "/admin/settings", label: "Site settings", icon: Settings2, match: /^\/admin\/settings(\/|$)/ },
 ] as const
 
@@ -16,7 +22,7 @@ export default function AdminNav() {
   return (
     <nav
       aria-label="Admin sections"
-      className="flex gap-1.5 overflow-x-auto lg:flex-col lg:overflow-visible"
+      className="flex flex-wrap gap-1.5 lg:flex-col"
     >
       {ITEMS.map((item) => {
         const active = item.match.test(pathname)

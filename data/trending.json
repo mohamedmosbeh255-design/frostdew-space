@@ -1,0 +1,268 @@
+{
+  "updatedAt": "2026-11-02",
+  "note": "Seed data for layout testing. Replace the weekly scores and notes with your own manual research, then redeploy. No live sources are queried.",
+  "products": [
+    {
+      "id": "anua-heartleaf-77-soothing-toner-8-45-fl-oz",
+      "brand": "Anua",
+      "name": "Heartleaf 77 Soothing Toner, 8.45 fl oz",
+      "fullName": "Anua Heartleaf 77 Soothing Toner, 8.45 fl oz",
+      "categories": ["toners"],
+      "short": "Calming glass-skin toner with 77% heartleaf extract and hyaluronic acid for redness relief and lightweight hydration.",
+      "description": "Calming glass-skin toner with 77% heartleaf extract and hyaluronic acid for redness relief and lightweight hydration. Sensitive-skin friendly, AM & PM—or use as a mini sheet mask with cotton pads.",
+      "features": [
+        "Calming glass-skin toner with 77% heartleaf extract and hyaluronic acid for redness relief and lightweight hydration.",
+        "Sensitive-skin friendly, AM & PM—or use as a mini sheet mask with cotton pads."
+      ],
+      "image": "https://m.media-amazon.com/images/W/BW_MEDIAX_AVIF_MEASUREMENT_1306696-T3/images/I/71Bz+4tz1pL._AC_SL1500_.jpg",
+      "url": "https://www.amazon.com/dp/B08CMS8P67?tag=beautynest202-20",
+      "store": "Amazon",
+      "bestseller": false,
+      "notes": "Check whether the upward move continues after the seasonal change. Verify the listing is still in stock.",
+      "weeks": [
+        { "week": "2026-09-28", "score": 58 },
+        { "week": "2026-10-05", "score": 63 },
+        { "week": "2026-10-12", "score": 68 },
+        { "week": "2026-10-19", "score": 72 },
+        { "week": "2026-10-26", "score": 78 },
+        { "week": "2026-11-02", "score": 84 }
+      ]
+    },
+    {
+      "id": "anua-rice-70-glow-milky-toner-non-comedogenic-ko",
+      "brand": "Anua",
+      "name": "Rice 70 Glow Milky Toner, Non Comedogenic, Korean Skincare, 8.45 fl oz",
+      "fullName": "Anua Rice 70 Glow Milky Toner, Non Comedogenic, Korean Skincare, 8.45 fl oz",
+      "categories": ["toners"],
+      "short": "Milky glow toner enriched with 70% rice bran water, niacinamide, and ceramides for glass, dewy skin, and barrier care.",
+      "description": "Milky glow toner enriched with 70% rice bran water, niacinamide, and ceramides for glass, dewy skin, and barrier care. Non-comedogenic, fragrance-free, for all skin types.",
+      "features": [
+        "Milky glow toner enriched with 70% rice bran water, niacinamide, and ceramides for glass, dewy skin, and barrier care.",
+        "Non-comedogenic, fragrance-free, for all skin types."
+      ],
+      "image": "https://m.media-amazon.com/images/W/BW_MEDIAX_AVIF_MEASUREMENT_1306696-T3/images/I/71C2Zemy1wL._AC_SL1500_.jpg",
+      "url": "https://www.amazon.com/dp/B0D54F8XYK?tag=beautynest202-20",
+      "store": "Amazon",
+      "bestseller": true,
+      "notes": "Flat four-week movement. Keep watching for a breakout week before prioritising.",
+      "weeks": [
+        { "week": "2026-09-28", "score": 72 },
+        { "week": "2026-10-05", "score": 76 },
+        { "week": "2026-10-12", "score": 75 },
+        { "week": "2026-10-19", "score": 77 },
+        { "week": "2026-10-26", "score": 79 },
+        { "week": "2026-11-02", "score": 80 }
+      ]
+    },
+    {
+      "id": "medicube-pdrn-pink-peptide-serum-with-salmon-dna",
+      "brand": "medicube",
+      "name": "PDRN Pink Peptide Serum with Salmon DNA, 1.01 fl oz",
+      "fullName": "medicube PDRN Pink Peptide Serum with Salmon DNA, 1.01 fl oz",
+      "categories": ["serums"],
+      "short": "Pink glow serum with salmon DNA PDRN, peptides, and niacinamide for hydration, firm-looking skin, and uneven tone care.",
+      "description": "Pink glow serum with salmon DNA PDRN, peptides, and niacinamide for hydration, firm-looking skin, and uneven tone care.",
+      "features": [
+        "Pink glow serum with salmon DNA PDRN, peptides, and niacinamide for hydration, firm-looking skin, and uneven tone care."
+      ],
+      "image": "https://m.media-amazon.com/images/W/BW_MEDIAX_AVIF_MEASUREMENT_1306696-T3/images/I/71GAXRVpezL._SL1500_.jpg",
+      "url": "https://www.amazon.com/dp/B0DBF65JYY?tag=beautynest202-20",
+      "store": "Amazon",
+      "bestseller": true,
+      "notes": "Steep climb. Confirm the demand is not only a short-lived social spike.",
+      "weeks": [
+        { "week": "2026-09-28", "score": 40 },
+        { "week": "2026-10-05", "score": 48 },
+        { "week": "2026-10-12", "score": 55 },
+        { "week": "2026-10-19", "score": 63 },
+        { "week": "2026-10-26", "score": 71 },
+        { "week": "2026-11-02", "score": 80 }
+      ]
+    },
+    {
+      "id": "cosrx-advanced-snail-96-mucin-power-essence-skin",
+      "brand": "COSRX",
+      "name": "Advanced Snail 96 Mucin Power Essence, Skin Repair Serum 100ml",
+      "fullName": "COSRX Advanced Snail 96 Mucin Power Essence, Skin Repair Serum 100ml",
+      "categories": ["toners"],
+      "short": "Iconic Korean repair essence for damaged everyday skin.",
+      "description": "Iconic Korean repair essence for damaged everyday skin. COSRX Advanced Snail 96 Mucin Power Essence with 96% Snail Secretion Filtrate deeply hydrates, repairs the skin barrier and fades post-summer marks. Lightweight gel texture absorbs fast, alcohol-free, paraben-free and cruelty-free. Perfect after summer sun stress and for fall dryness.",
+      "features": [
+        "Iconic Korean repair essence for damaged everyday skin.",
+        "96% Snail Secretion Filtrate deeply hydrates and supports the skin barrier.",
+        "Lightweight gel texture absorbs fast, alcohol-free and cruelty-free."
+      ],
+      "image": "https://m.media-amazon.com/images/I/416kUGx2rQL._AC_SL1024_.jpg",
+      "url": "https://www.amazon.co.uk/dp/B00PBX3L7K?tag=beautynestkor-21",
+      "store": "Amazon UK",
+      "bestseller": false,
+      "notes": "Cooling after a long high. Check whether the drop is seasonal or a real change in interest.",
+      "weeks": [
+        { "week": "2026-09-28", "score": 88 },
+        { "week": "2026-10-05", "score": 86 },
+        { "week": "2026-10-12", "score": 84 },
+        { "week": "2026-10-19", "score": 83 },
+        { "week": "2026-10-26", "score": 80 },
+        { "week": "2026-11-02", "score": 77 }
+      ]
+    },
+    {
+      "id": "beauty-of-joseon-glow-serum-propolis-niacinamide",
+      "brand": "Beauty of Joseon",
+      "name": "Glow Serum, Propolis + Niacinamide for Uneven Tone 30ml",
+      "fullName": "Beauty of Joseon Glow Serum, Propolis + Niacinamide for Uneven Tone 30ml",
+      "categories": ["serums"],
+      "short": "Korean glow serum for dull, uneven everyday skin.",
+      "description": "Korean glow serum for dull, uneven everyday skin. Beauty of Joseon Glow Serum with 60% Propolis Extract plus Niacinamide and Tea Tree hydrates, soothes redness and refines pores for clear glass skin. Lightweight honey-like texture absorbs fast without stickiness.",
+      "features": [
+        "Korean glow serum for dull, uneven everyday skin.",
+        "60% Propolis Extract plus Niacinamide and Tea Tree.",
+        "Lightweight honey-like texture absorbs fast without stickiness."
+      ],
+      "image": "https://m.media-amazon.com/images/I/61c0Hy2FRiL._SL1500_.jpg",
+      "url": "https://www.amazon.com/dp/B0F8LBX37X?tag=beautynest202-20",
+      "store": "Amazon",
+      "bestseller": false,
+      "notes": "Four straight weeks of decline. Decide whether to keep this in the research list.",
+      "weeks": [
+        { "week": "2026-09-28", "score": 65 },
+        { "week": "2026-10-05", "score": 61 },
+        { "week": "2026-10-12", "score": 58 },
+        { "week": "2026-10-19", "score": 55 },
+        { "week": "2026-10-26", "score": 51 },
+        { "week": "2026-11-02", "score": 47 }
+      ]
+    },
+    {
+      "id": "round-lab-1025-dokdo-cleanser-low-ph-hydrating-f",
+      "brand": "Round Lab",
+      "name": "1025 Dokdo Cleanser, Low pH Hydrating Face Wash 150ml",
+      "fullName": "ROUND LAB 1025 Dokdo Cleanser, Low pH Hydrating Face Wash 150ml",
+      "categories": ["cleansers"],
+      "short": "Gentle Korean low-pH cleanser for sensitive everyday skin.",
+      "description": "Gentle Korean low-pH cleanser for sensitive everyday skin. ROUND LAB 1025 Dokdo Cleanser with Deep Sea Water from Ulleungdo softly removes dirt and excess oil without stripping moisture. Rich fine foam keeps skin hydrated after washing, no tight feeling in cold weather.",
+      "features": [
+        "Gentle Korean low-pH cleanser for sensitive everyday skin.",
+        "Deep Sea Water from Ulleungdo softly removes dirt and excess oil without stripping moisture.",
+        "Rich fine foam keeps skin hydrated after washing."
+      ],
+      "image": "https://m.media-amazon.com/images/I/51n2BJNH-zL._SL1500_.jpg",
+      "url": "https://www.amazon.com/dp/B08FMCMGN6?tag=beautynest202-20",
+      "store": "Amazon",
+      "bestseller": true,
+      "notes": "Steady climb among the cleanser entries. Compare against the other low-pH options.",
+      "weeks": [
+        { "week": "2026-09-28", "score": 70 },
+        { "week": "2026-10-05", "score": 71 },
+        { "week": "2026-10-12", "score": 73 },
+        { "week": "2026-10-19", "score": 72 },
+        { "week": "2026-10-26", "score": 75 },
+        { "week": "2026-11-02", "score": 77 }
+      ]
+    },
+    {
+      "id": "purito-seoul-daily-soft-touch-sunscreen-spf50-pa",
+      "brand": "Purito Seoul",
+      "name": "Daily Soft Touch Sunscreen SPF50+ PA++++, 60ml",
+      "fullName": "Purito Seoul Daily Soft Touch Sunscreen SPF50+ PA++++, 60ml",
+      "categories": ["sunscreens"],
+      "short": "The lightest texture in K-beauty sun care: Purito Seoul's soft-touch sunscreen with five ceramides delivers SPF50+ PA++++ with no white cast—oil-free, vegan, and a velvet daily UV defense for sensitive skin.",
+      "description": "The lightest texture in K-beauty sun care: Purito Seoul's soft-touch sunscreen with five ceramides delivers SPF50+ PA++++ with no white cast—oil-free, vegan, and a velvet daily UV defense for sensitive skin.",
+      "features": [
+        "The lightest texture in K-beauty sun care: Purito Seoul's soft-touch sunscreen with five ceramides delivers SPF50+ PA++++ with no white cast—oil-free, vegan, and a velvet daily UV defense for sensitive skin."
+      ],
+      "image": "https://m.media-amazon.com/images/W/BW_MEDIAX_AVIF_MEASUREMENT_1306696-T3/images/I/61go3yy4G8L._SL1080_.jpg",
+      "url": "https://www.amazon.com/dp/B0H4TLVRBG?tag=beautynest202-20",
+      "store": "Amazon",
+      "bestseller": false,
+      "notes": "Strongest sunscreen mover in this snapshot. Verify the listing has stable stock.",
+      "weeks": [
+        { "week": "2026-09-28", "score": 60 },
+        { "week": "2026-10-05", "score": 66 },
+        { "week": "2026-10-12", "score": 71 },
+        { "week": "2026-10-19", "score": 76 },
+        { "week": "2026-10-26", "score": 82 },
+        { "week": "2026-11-02", "score": 88 }
+      ]
+    },
+    {
+      "id": "skin1004-madagascar-centella-hyalu-cica-water-fi",
+      "brand": "SKIN1004",
+      "name": "Madagascar Centella Hyalu-Cica Water-Fit Sun Serum SPF50+ PA++++ 50ml×2 (Twin Pack)",
+      "fullName": "SKIN1004 Madagascar Centella Hyalu-Cica Water-Fit Sun Serum SPF50+ PA++++ 50ml×2 (Twin Pack)",
+      "categories": ["sunscreens"],
+      "short": "A watery serum-type sunscreen that layers like skincare: Madagascar centella and hyalu-cica calm reactive skin while delivering SPF50+ with a dewy, weightless finish.",
+      "description": "A watery serum-type sunscreen that layers like skincare: Madagascar centella and hyalu-cica calm reactive skin while delivering SPF50+ with a dewy, weightless finish. Twin pack value—two 50 ml tubes at the price of one.",
+      "features": [
+        "A watery serum-type sunscreen that layers like skincare: Madagascar centella and hyalu-cica calm reactive skin while delivering SPF50+ with a dewy, weightless finish.",
+        "Twin pack value—two 50 ml tubes at the price of one."
+      ],
+      "image": "https://cdn-image.oliveyoung.com/prdtImg/1252/972a35d6-b63c-4cf0-b053-82574908fb6c.PNG?RS=810x810&AR=0",
+      "url": "https://www.amazon.com/dp/B0G616CQHX?tag=beautynest202-20",
+      "store": "Amazon",
+      "bestseller": false,
+      "notes": "Consistent rise. Compare the twin-pack value against the Purito listing.",
+      "weeks": [
+        { "week": "2026-09-28", "score": 55 },
+        { "week": "2026-10-05", "score": 59 },
+        { "week": "2026-10-12", "score": 64 },
+        { "week": "2026-10-19", "score": 69 },
+        { "week": "2026-10-26", "score": 75 },
+        { "week": "2026-11-02", "score": 79 }
+      ]
+    },
+    {
+      "id": "aestura-atobarrier365-cream-available-as-single-",
+      "brand": "AESTURA",
+      "name": "Atobarrier365 Cream — Available as Single Item or Full Routine Set",
+      "fullName": "AESTURA Atobarrier365 Cream — Available as Single Item or Full Routine Set",
+      "categories": ["moisturizers", "sets"],
+      "short": "Ceramide barrier cream for dry, sensitive skin. Single item or set.",
+      "description": "Barrier cream built around ceramides and DermaON technology, made for dry and sensitive skin. Available as a single item or in a set; check the listing for what is included.",
+      "features": [
+        "AESTURA Atobarrier365 Cream (80ml) is the same product on both platforms, built around Ceramide and DermaON barrier technology.",
+        "What differs is what is included with it."
+      ],
+      "image": "https://wlbsswmkoahjzentukns.supabase.co/storage/v1/object/public/site-assets/imgi_181_35fe63d3-a076-424b-bbb6-00fb45398ba6.jpg",
+      "url": "https://www.amazon.com/dp/B09YDCCJBJ?tag=beautynest202-20",
+      "store": "Amazon",
+      "bestseller": true,
+      "notes": "Cold-weather category. Recheck after the first heating-season snap.",
+      "weeks": [
+        { "week": "2026-09-28", "score": 49 },
+        { "week": "2026-10-05", "score": 52 },
+        { "week": "2026-10-12", "score": 56 },
+        { "week": "2026-10-19", "score": 60 },
+        { "week": "2026-10-26", "score": 64 },
+        { "week": "2026-11-02", "score": 68 }
+      ]
+    },
+    {
+      "id": "laneige-lip-sleeping-mask-ex-berry-overnight-hyd",
+      "brand": "LANEIGE",
+      "name": "Lip Sleeping Mask EX Berry, Overnight Hydrating Lip Treatment 20g",
+      "fullName": "LANEIGE Lip Sleeping Mask EX Berry, Overnight Hydrating Lip Treatment 20g",
+      "categories": ["lip-care"],
+      "short": "Overnight Korean lip treatment for dry, flaky everyday lips.",
+      "description": "Overnight Korean lip treatment for dry, flaky everyday lips. LANEIGE Lip Sleeping Mask EX in Berry melts with Berry Fruit Complex, Vitamin C, Murumuru and Shea Butter to deeply hydrate, smooth texture and lock in moisture while you sleep.",
+      "features": [
+        "Overnight Korean lip treatment for dry, flaky everyday lips.",
+        "Berry Fruit Complex, Vitamin C, Murumuru and Shea Butter deeply hydrate and lock in moisture.",
+        "Apply a thin layer at bedtime and wipe off in the morning."
+      ],
+      "image": "https://m.media-amazon.com/images/I/51VfrPOslWL._AC_SL1500_.jpg",
+      "url": "https://www.amazon.com/dp/B07XXPHQZK?tag=beautynest202-20",
+      "store": "Amazon",
+      "bestseller": true,
+      "notes": "Declining from a high base. Check whether a newer lip mask is taking the attention.",
+      "weeks": [
+        { "week": "2026-09-28", "score": 80 },
+        { "week": "2026-10-05", "score": 78 },
+        { "week": "2026-10-12", "score": 76 },
+        { "week": "2026-10-19", "score": 73 },
+        { "week": "2026-10-26", "score": 70 },
+        { "week": "2026-11-02", "score": 66 }
+      ]
+    }
+  ]
+}
