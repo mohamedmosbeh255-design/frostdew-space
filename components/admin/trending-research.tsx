@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useMemo, useRef, useState } from "react"
+import { cloneElement, useEffect, useId, useMemo, useRef, useState, type ReactElement } from "react"
 import {
   ArrowDownRight,
   ArrowUpRight,
@@ -12,6 +12,7 @@ import {
   FileText,
   History,
   Info,
+  ListOrdered,
   Minus,
   RefreshCw,
   ShieldCheck,
@@ -40,9 +41,42 @@ import {
 const DISCLAIMER =
   "All products require manual verification before publishing. This tool provides suggestions only, not recommendations."
 
+const QUICK_START_STEPS = [
+  "Select 5 products using the checkboxes",
+  'Click "Copy selected JSON"',
+  "Paste into Add Product form",
+] as const
+
 type CopyState = "idle" | "copied" | "error"
 
 const signed = (value: number) => `${value > 0 ? "+" : ""}${value}`
+
+function Tooltip({
+  label,
+  children,
+  align = "center",
+}: {
+  label: string
+  children: ReactElement<{ "aria-describedby"?: string }>
+  align?: "start" | "center" | "end"
+}) {
+  const tooltipId = useId()
+  const alignment =
+    align === "start" ? "left-0" : align === "end" ? "right-0" : "left-1/2 -translate-x-1/2"
+
+  return (
+    <span className="group/tooltip relative inline-flex">
+      {cloneElement(children, { "aria-describedby": tooltipId })}
+      <span
+        id={tooltipId}
+        role="tooltip"
+        className={`pointer-events-none absolute bottom-full z-40 mb-2 w-max max-w-56 rounded-lg bg-midnight px-2.5 py-1.5 text-center text-[0.65rem] font-semibold leading-relaxed text-snow opacity-0 shadow-lg transition-opacity duration-150 group-hover/tooltip:opacity-100 group-focus-within/tooltip:opacity-100 ${alignment}`}
+      >
+        {label}
+      </span>
+    </span>
+  )
+}
 
 const directionStyles: Record<TrendDirection, string> = {
   rising: "border-emerald-300 bg-emerald-50 text-emerald-800",
@@ -466,6 +500,43 @@ export default function TrendingResearch({ data }: { data: TrendingData }) {
         </div>
       </div>
 
+      <section
+        aria-labelledby="quick-start-title"
+        className="rounded-2xl border border-winter/15 bg-white/75 p-4 shadow-sm"
+      >
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div className="flex items-center gap-2.5">
+            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-ice text-winter">
+              <ListOrdered className="h-4 w-4" aria-hidden="true" />
+            </span>
+            <div>
+              <h2 id="quick-start-title" className="font-display text-lg text-midnight">
+                Quick Start
+              </h2>
+              <p className="text-xs text-muted-foreground">
+                From research to the Add Product form in three steps.
+              </p>
+            </div>
+          </div>
+          <span className="text-[0.6rem] font-bold uppercase tracking-[0.14em] text-glacier">
+            3 steps
+          </span>
+        </div>
+        <ol className="mt-3 grid gap-2 sm:grid-cols-3">
+          {QUICK_START_STEPS.map((step, index) => (
+            <li
+              key={step}
+              className="flex items-start gap-2.5 rounded-xl border border-border bg-white/70 px-3 py-2.5"
+            >
+              <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-midnight text-[0.65rem] font-bold text-snow">
+                {index + 1}
+              </span>
+              <p className="text-xs font-semibold leading-relaxed text-midnight">{step}</p>
+            </li>
+          ))}
+        </ol>
+      </section>
+
       {data.note && (
         <p className="flex items-start gap-2 rounded-xl border border-border bg-white/60 px-3 py-2 text-xs leading-relaxed text-muted-foreground">
           <Info className="mt-0.5 h-3.5 w-3.5 shrink-0 text-glacier" aria-hidden="true" />
@@ -491,15 +562,17 @@ export default function TrendingResearch({ data }: { data: TrendingData }) {
               {selectedIds.length} selected · {verifiedCount} verified in this browser
             </span>
             <div className="ml-auto flex flex-wrap items-center gap-2">
-              <button
-                type="button"
-                onClick={copySelected}
-                disabled={selectedIds.length === 0}
-                className="inline-flex items-center gap-1.5 rounded-full bg-midnight px-3.5 py-2 text-xs font-bold text-snow transition-colors hover:bg-winter disabled:cursor-not-allowed disabled:opacity-40"
-              >
-                <ClipboardCopy className="h-3.5 w-3.5" aria-hidden="true" />
-                Copy selected JSON
-              </button>
+              <Tooltip label="Copies selected products to clipboard for adding to catalog">
+                <button
+                  type="button"
+                  onClick={copySelected}
+                  disabled={selectedIds.length === 0}
+                  className="inline-flex items-center gap-1.5 rounded-full bg-midnight px-3.5 py-2 text-xs font-bold text-snow transition-colors hover:bg-winter disabled:cursor-not-allowed disabled:opacity-40"
+                >
+                  <ClipboardCopy className="h-3.5 w-3.5" aria-hidden="true" />
+                  Copy selected JSON
+                </button>
+              </Tooltip>
               <button
                 type="button"
                 onClick={clearSelection}
@@ -588,43 +661,56 @@ export default function TrendingResearch({ data }: { data: TrendingData }) {
                       </p>
 
                       <div className="mt-3 flex flex-wrap items-center gap-2">
-                        <button
-                          type="button"
-                          onClick={() => analyzeProduct(product)}
-                          className="inline-flex items-center gap-1.5 rounded-full bg-midnight px-3.5 py-1.5 text-xs font-bold text-snow transition-colors hover:bg-winter"
-                        >
-                          {analysis ? (
-                            <RefreshCw className="h-3.5 w-3.5" aria-hidden="true" />
-                          ) : (
-                            <TrendingUp className="h-3.5 w-3.5" aria-hidden="true" />
-                          )}
-                          {analysis ? "Re-analyze" : "Analyze"}
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => toggleVerification(product)}
-                          className={`inline-flex items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-xs font-bold transition-colors ${
+                        <Tooltip label="Shows trend data for this product">
+                          <button
+                            type="button"
+                            onClick={() => analyzeProduct(product)}
+                            className="inline-flex items-center gap-1.5 rounded-full bg-midnight px-3.5 py-1.5 text-xs font-bold text-snow transition-colors hover:bg-winter"
+                          >
+                            {analysis ? (
+                              <RefreshCw className="h-3.5 w-3.5" aria-hidden="true" />
+                            ) : (
+                              <TrendingUp className="h-3.5 w-3.5" aria-hidden="true" />
+                            )}
+                            {analysis ? "Re-analyze" : "Analyze"}
+                          </button>
+                        </Tooltip>
+                        <Tooltip
+                          align="end"
+                          label={
                             verified
-                              ? "border-border bg-white text-muted-foreground hover:bg-muted"
-                              : "border-emerald-300 bg-white text-emerald-800 hover:bg-emerald-50"
-                          }`}
+                              ? "Returns this product to Needs manual review"
+                              : "Confirms this product is ready to publish"
+                          }
                         >
-                          {verified ? (
-                            <ShieldQuestion className="h-3.5 w-3.5" aria-hidden="true" />
-                          ) : (
-                            <ShieldCheck className="h-3.5 w-3.5" aria-hidden="true" />
-                          )}
-                          {verified ? "Reset to needs review" : "Mark verified"}
-                        </button>
-                        <a
-                          href={product.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1 text-xs font-semibold text-winter underline decoration-winter/30 underline-offset-4 transition-colors hover:text-midnight"
-                        >
-                          Open listing
-                          <ExternalLink className="h-3 w-3" aria-hidden="true" />
-                        </a>
+                          <button
+                            type="button"
+                            onClick={() => toggleVerification(product)}
+                            className={`inline-flex items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-xs font-bold transition-colors ${
+                              verified
+                                ? "border-border bg-white text-muted-foreground hover:bg-muted"
+                                : "border-emerald-300 bg-white text-emerald-800 hover:bg-emerald-50"
+                            }`}
+                          >
+                            {verified ? (
+                              <ShieldQuestion className="h-3.5 w-3.5" aria-hidden="true" />
+                            ) : (
+                              <ShieldCheck className="h-3.5 w-3.5" aria-hidden="true" />
+                            )}
+                            {verified ? "Reset to needs review" : "Mark verified"}
+                          </button>
+                        </Tooltip>
+                        <Tooltip label="Opens the product page on the public site" align="end">
+                          <a
+                            href={product.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1 text-xs font-semibold text-winter underline decoration-winter/30 underline-offset-4 transition-colors hover:text-midnight"
+                          >
+                            Open listing
+                            <ExternalLink className="h-3 w-3" aria-hidden="true" />
+                          </a>
+                        </Tooltip>
                       </div>
                     </div>
                   </div>
