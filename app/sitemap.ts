@@ -12,6 +12,7 @@ const ROUTES: Array<{
   { path: "/about", changeFrequency: "monthly", priority: 0.6 },
   { path: "/contact", changeFrequency: "monthly", priority: 0.5 },
   { path: "/routine-decoder", changeFrequency: "monthly", priority: 0.7 },
+  { path: "/analyzer", changeFrequency: "monthly", priority: 0.7 },
   { path: "/affiliate-disclosure", changeFrequency: "yearly", priority: 0.4 },
   { path: "/privacy-policy", changeFrequency: "yearly", priority: 0.4 },
   { path: "/terms", changeFrequency: "yearly", priority: 0.4 },
