@@ -56,6 +56,11 @@ export default async function SiteFooter() {
                   All products
                 </Link>
               </li>
+              <li>
+                <Link href="/routine-decoder" className={linkClass}>
+                  Routine Decoder
+                </Link>
+              </li>
             </ul>
           </nav>
 
