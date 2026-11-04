@@ -31,6 +31,7 @@ export default function ProductSuggestion({
         <div className="relative h-24 w-24 shrink-0 overflow-hidden rounded-2xl border border-border bg-white sm:h-28 sm:w-28">
           <ProductImage
             product={product}
+            sizes="(max-width: 640px) 96px, 112px"
             className="h-full w-full"
             imageClassName="h-full w-full object-contain p-2"
           />

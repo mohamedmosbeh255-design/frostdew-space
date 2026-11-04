@@ -182,6 +182,7 @@ export default function ProductSearch({
                   <span className="h-10 w-10 shrink-0 overflow-hidden rounded-lg bg-white">
                     <ProductImage
                       product={product}
+                      sizes="40px"
                       className="h-full w-full"
                       imageClassName="h-full w-full object-contain p-1"
                     />

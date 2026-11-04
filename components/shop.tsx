@@ -201,8 +201,13 @@ export default function Shop({
             </div>
           ) : (
             <div className="mt-4 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-              {shown.map((p) => (
-                <ProductCard key={p.id} product={p} onOpen={setSelected} />
+              {shown.map((p, index) => (
+                <ProductCard
+                  key={p.id}
+                  product={p}
+                  onOpen={setSelected}
+                  priority={index < 4}
+                />
               ))}
             </div>
           )}

@@ -79,14 +79,22 @@ export function PriceTag({
   )
 }
 
+const RESPONSIVE_IMAGE_SIZES = "(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+
 export function ProductImage({
   product,
   className,
   imageClassName = "h-full w-full object-contain p-4",
+  priority = false,
+  sizes = RESPONSIVE_IMAGE_SIZES,
 }: {
   product: Product
   className?: string
   imageClassName?: string
+  /** Preload the image because it is likely the LCP element. */
+  priority?: boolean
+  /** Override the responsive hint for small thumbnails. */
+  sizes?: string
 }) {
   const [failed, setFailed] = useState(false)
   if (failed) {
@@ -101,7 +109,8 @@ export function ProductImage({
       src={product.image}
       alt={`${product.brand} ${product.name}`}
       fill
-      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+      priority={priority}
+      sizes={sizes}
       referrerPolicy="no-referrer"
       className={className}
       imageClassName={imageClassName}
@@ -146,9 +155,12 @@ export function BuyLink({ product, className }: { product: Product; className?: 
 export default function ProductCard({
   product,
   onOpen,
+  priority = false,
 }: {
   product: Product
   onOpen: (product: Product) => void
+  /** Preload the card image because it is one of the first products shown. */
+  priority?: boolean
 }) {
   // Only render dates we can format. Falling back to the raw stored value used
   // to leak full ISO timestamps into the card.
@@ -170,6 +182,7 @@ export default function ProductCard({
         <div className="relative aspect-square w-full overflow-hidden bg-white">
           <ProductImage
             product={product}
+            priority={priority}
             className="h-full w-full"
             imageClassName="h-full w-full object-contain p-4 transition-transform duration-500 ease-out group-hover:scale-[1.04]"
           />

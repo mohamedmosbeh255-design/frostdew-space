@@ -223,6 +223,7 @@ export default async function ProductPage({ params }: Props) {
                     <div className="h-20 w-20 shrink-0 overflow-hidden rounded-xl bg-white">
                       <ProductImage
                         product={entry}
+                        sizes="80px"
                         className="h-full w-full"
                         imageClassName="h-full w-full object-contain p-1"
                       />

@@ -132,6 +132,7 @@ export default function ProductDialog({
                     >
                       <ProductImage
                         product={item}
+                        sizes="(max-width: 640px) 40vw, 200px"
                         className="aspect-square w-full"
                         imageClassName="h-full w-full object-contain p-2"
                       />
