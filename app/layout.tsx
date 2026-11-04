@@ -45,7 +45,7 @@ export default function RootLayout({
     <html lang="en" data-scroll-behavior="smooth" className={`${manrope.variable} ${fraunces.variable}`}>
       <body>
         {children}
-        {process.env.NODE_ENV === 'production' && <Analytics />}
+        <Analytics />
       </body>
     </html>
   )
