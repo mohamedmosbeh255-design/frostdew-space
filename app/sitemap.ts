@@ -24,6 +24,21 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const products = await readCatalog()
   const lastModified = new Date()
 
+  // Encode and deduplicate ids so a malformed or repeated catalog row can
+  // never produce a broken or duplicate product URL in the sitemap.
+  const productUrls = new Map<string, MetadataRoute.Sitemap[number]>()
+  for (const product of products) {
+    const id = product.id.trim()
+    if (!id) continue
+    const url = `${SITE_URL}/products/${encodeURIComponent(id)}`
+    productUrls.set(url, {
+      url,
+      lastModified,
+      changeFrequency: "weekly",
+      priority: 0.8,
+    })
+  }
+
   return [
     ...ROUTES.map((route) => ({
       url: `${SITE_URL}${route.path}`,
@@ -31,11 +46,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: route.changeFrequency,
       priority: route.priority,
     })),
-    ...products.map((product) => ({
-      url: `${SITE_URL}/products/${product.id}`,
-      lastModified,
-      changeFrequency: "weekly" as const,
-      priority: 0.8,
-    })),
+    ...productUrls.values(),
   ]
 }
