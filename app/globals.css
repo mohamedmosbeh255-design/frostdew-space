@@ -180,12 +180,11 @@ section[id] {
 }
 
 @keyframes brand-in {
-  from { opacity: 0; transform: translateY(18px); filter: blur(6px); }
-  to { opacity: 1; transform: translateY(0); filter: blur(0); }
+  from { transform: translateY(18px); }
+  to { transform: translateY(0); }
 }
 .animate-brand-in {
-  opacity: 0;
-  animation: brand-in 1s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  animation: brand-in 0.9s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 @keyframes cue-float {
@@ -199,6 +198,68 @@ section[id] {
 dialog::backdrop {
   background: rgba(23, 45, 67, 0.55);
   backdrop-filter: blur(4px);
+}
+
+/* Audio concierge: CSS-only visuals keep speech playback off the JS budget. */
+.audio-wave {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  height: 14px;
+  color: inherit;
+}
+.audio-wave--large {
+  gap: 3px;
+  height: 26px;
+}
+.audio-wave__bar {
+  width: 2px;
+  height: 100%;
+  border-radius: 9999px;
+  background: currentColor;
+  transform-origin: center;
+  animation: audio-wave 1.15s ease-in-out infinite;
+}
+.audio-wave--large .audio-wave__bar {
+  width: 3px;
+}
+.audio-wave__bar:nth-child(2n) { animation-duration: 0.95s; }
+.audio-wave__bar:nth-child(3n) { animation-duration: 1.35s; }
+.audio-wave--paused .audio-wave__bar {
+  animation-play-state: paused;
+  transform: scaleY(0.35);
+  opacity: 0.55;
+}
+@keyframes audio-wave {
+  0%, 100% { transform: scaleY(0.32); opacity: 0.55; }
+  50% { transform: scaleY(1); opacity: 1; }
+}
+
+/* Reading Mode replaces speech when no premium exact-locale voice exists. */
+.reading-mode {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 1.75rem;
+  flex-shrink: 0;
+  overflow: hidden;
+  border-radius: 0.5rem;
+  background: #dceffc;
+  color: #294a67;
+}
+.reading-mode--active::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(41, 74, 103, 0.32), transparent);
+  transform: translateX(-100%);
+  animation: reading-scan 1.6s ease-in-out infinite;
+}
+@keyframes reading-scan {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
 }
 
 /* Legal and informational pages */
@@ -267,4 +328,6 @@ dialog::backdrop {
   .snow-p, .snow-i, .animate-cue-float { animation: none !important; }
   .animate-brand-in { animation: none; opacity: 1; }
   .card-lift, .card-lift:hover { transform: none; }
+  .audio-wave__bar { animation: none !important; }
+  .reading-mode--active::after { animation: none !important; opacity: 0.35; }
 }

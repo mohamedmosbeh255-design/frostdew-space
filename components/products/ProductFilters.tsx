@@ -2,8 +2,10 @@
 
 import { useEffect, useMemo, useState } from "react"
 import { RotateCcw, Star } from "lucide-react"
-import { formatNumber, parsePrice } from "@/lib/format"
+import { parsePrice } from "@/lib/format"
+import { formatDisplayPrice } from "@/lib/currency"
 import { CATEGORIES, type Product } from "@/lib/products"
+import { usePreferences } from "@/lib/preferences"
 import type { ShopFilters, ShopSort } from "@/lib/shop-params"
 
 /** Effective price: the sale price when present, otherwise the regular price. */
@@ -30,6 +32,7 @@ export default function ProductFilters({
   onReset,
   isPending = false,
 }: ProductFiltersProps) {
+  const { t, currency: displayCurrency, locale } = usePreferences()
   const categoryOrder = useMemo(
     () => new Map<string, number>(CATEGORIES.map((category, index) => [category.id, index])),
     [],
@@ -49,7 +52,7 @@ export default function ProductFilters({
 
   // The slider ceiling is the catalog's highest price, so label it with that
   // product's currency instead of assuming dollars.
-  const currency = useMemo(() => {
+  const priceSymbol = useMemo(() => {
     let ceiling: { symbol: string; amount: number } | null = null
     for (const product of products) {
       const parsed = parsePrice(product.salePrice ?? product.price ?? "")
@@ -90,7 +93,7 @@ export default function ProductFilters({
     >
       <div className="flex items-center justify-between gap-3">
         <h3 className="flex items-center gap-2 font-display text-lg text-midnight">
-          Filters
+          {t("shop.filters")}
           {active && (
             <span
               className="inline-block h-2 w-2 rounded-full bg-accent-500"
@@ -105,7 +108,7 @@ export default function ProductFilters({
             className="inline-flex items-center gap-1.5 text-xs font-semibold text-winter transition-colors hover:text-midnight"
           >
             <RotateCcw className="h-3.5 w-3.5" aria-hidden="true" />
-            Reset
+            {t("common.reset")}
           </button>
         )}
       </div>
@@ -113,7 +116,7 @@ export default function ProductFilters({
       <div className="mt-4 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
         <div>
           <label htmlFor="filter-category" className="text-xs font-bold uppercase tracking-[0.14em] text-glacier">
-            Category
+            {t("shop.category")}
           </label>
           <select
             id="filter-category"
@@ -123,10 +126,10 @@ export default function ProductFilters({
             }
             className={selectClass}
           >
-            <option value="all">All categories</option>
+            <option value="all">{t("shop.allCategories")}</option>
             {categories.map((category) => (
               <option key={category} value={category}>
-                {CATEGORIES.find((entry) => entry.id === category)?.label ?? category}
+                {t(`categories.${category}`)}
               </option>
             ))}
           </select>
@@ -135,7 +138,13 @@ export default function ProductFilters({
         {prices.length > 0 && (
           <div>
             <label htmlFor="filter-price" className="text-xs font-bold uppercase tracking-[0.14em] text-glacier">
-              Max price: {currency}{formatNumber(Math.round(priceDraft))}
+              {t("shop.maxPrice", {
+                value: formatDisplayPrice(
+                  `${priceSymbol}${Math.round(priceDraft)}`,
+                  displayCurrency,
+                  locale,
+                ),
+              })}
             </label>
             <input
               id="filter-price"
@@ -156,9 +165,9 @@ export default function ProductFilters({
 
         <div>
           <span className="text-xs font-bold uppercase tracking-[0.14em] text-glacier">
-            Minimum rating
+            {t("shop.minimumRating")}
           </span>
-          <div className="mt-2 flex flex-wrap gap-1.5" role="group" aria-label="Minimum rating">
+          <div className="mt-2 flex flex-wrap gap-1.5" role="group" aria-label={t("shop.minimumRatingLabel")}>
             <button
               type="button"
               aria-pressed={value.rating === 0}
@@ -169,13 +178,13 @@ export default function ProductFilters({
                   : "border border-border bg-white text-primary-700 hover:bg-primary-50"
               }`}
             >
-              Any
+              {t("shop.any")}
             </button>
             {[1, 2, 3, 4, 5].map((rating) => (
               <button
                 key={rating}
                 type="button"
-                aria-label={`${rating} stars and up`}
+                aria-label={t("shop.stars", { count: rating })}
                 aria-pressed={value.rating === rating}
                 onClick={() => onChange({ ...value, rating })}
                 className={`inline-flex h-8 items-center gap-0.5 rounded-lg px-2 text-xs font-bold transition-colors ${
@@ -193,7 +202,7 @@ export default function ProductFilters({
 
         <div>
           <label htmlFor="filter-sort" className="text-xs font-bold uppercase tracking-[0.14em] text-glacier">
-            Sort by
+            {t("shop.sortBy")}
           </label>
           <select
             id="filter-sort"
@@ -203,11 +212,11 @@ export default function ProductFilters({
             }
             className={selectClass}
           >
-            <option value="featured">Featured</option>
-            <option value="newest">Newest</option>
-            <option value="price-low">Price: Low to High</option>
-            <option value="price-high">Price: High to Low</option>
-            <option value="rating">Highest Rating</option>
+            <option value="featured">{t("shop.sorts.featured")}</option>
+            <option value="newest">{t("shop.sorts.newest")}</option>
+            <option value="price-low">{t("shop.sorts.price-low")}</option>
+            <option value="price-high">{t("shop.sorts.price-high")}</option>
+            <option value="rating">{t("shop.sorts.rating")}</option>
           </select>
         </div>
       </div>

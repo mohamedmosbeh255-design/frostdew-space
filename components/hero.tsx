@@ -11,7 +11,20 @@ export default function Hero({ content }: { content: SiteContent["hero"] }) {
   const videoRef = useRef<HTMLVideoElement>(null)
   const media = resolveActiveHeroMedia(content)
   const [mediaFailed, setMediaFailed] = useState(false)
+  // The hero video is several megabytes. Small screens and visitors who ask
+  // for reduced motion get the poster instead, which keeps mobile LCP fast.
+  const [allowVideo, setAllowVideo] = useState(false)
   const fallbackImage = media.posterUrl || "/hero/hero-poster.jpg"
+
+  useEffect(() => {
+    const query = window.matchMedia(
+      "(min-width: 768px) and (prefers-reduced-motion: no-preference)",
+    )
+    const update = () => setAllowVideo(query.matches)
+    update()
+    query.addEventListener("change", update)
+    return () => query.removeEventListener("change", update)
+  }, [])
 
   useEffect(() => {
     setMediaFailed(false)
@@ -48,46 +61,26 @@ export default function Hero({ content }: { content: SiteContent["hero"] }) {
         className="absolute inset-0"
         style={{ transform: "scale(calc(1.02 + var(--scroll-p, 0) * 0.06))" }}
       >
-        {media.type === "video" ? (
-          mediaFailed ? (
-            <OptimizedImage
-              src={fallbackImage}
-              alt=""
-              fill
-              sizes="100vw"
-              className="h-full w-full"
-              imageClassName="h-full w-full object-cover"
-            />
-          ) : (
-            <video
-              key={media.url}
-              ref={videoRef}
-              className="h-full w-full object-cover"
-              src={media.url}
-              poster={media.posterUrl || undefined}
-              autoPlay
-              muted
-              loop
-              playsInline
-              preload="auto"
-              aria-hidden="true"
-              onError={() => setMediaFailed(true)}
-              onCanPlay={() => videoRef.current?.play().catch(() => undefined)}
-            />
-          )
-        ) : mediaFailed ? (
-          <OptimizedImage
-            src={fallbackImage}
-            alt=""
-            fill
-            sizes="100vw"
-            className="h-full w-full"
-            imageClassName="h-full w-full object-cover"
+        {media.type === "video" && allowVideo && !mediaFailed ? (
+          <video
+            key={media.url}
+            ref={videoRef}
+            className="h-full w-full object-cover"
+            src={media.url}
+            poster={media.posterUrl || undefined}
+            autoPlay
+            muted
+            loop
+            playsInline
+            preload="auto"
+            aria-hidden="true"
+            onError={() => setMediaFailed(true)}
+            onCanPlay={() => videoRef.current?.play().catch(() => undefined)}
           />
         ) : (
           <OptimizedImage
-            key={media.url}
-            src={media.url}
+            key={mediaFailed || media.type !== "image" ? fallbackImage : media.url}
+            src={mediaFailed || media.type !== "image" ? fallbackImage : media.url}
             alt=""
             fill
             priority

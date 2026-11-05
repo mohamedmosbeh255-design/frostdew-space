@@ -4,7 +4,8 @@ import Link from "next/link"
 import { ArrowUpRight, ExternalLink, FlaskConical, Quote, Sparkles, Star } from "lucide-react"
 import { PriceTag, ProductImage } from "@/components/product-card"
 import { formatRating, reviewCountLabel } from "@/lib/format"
-import { getProductStoreLinks } from "@/lib/store-links"
+import { getPrimaryStoreLinks } from "@/lib/store-links"
+import { usePreferences } from "@/lib/preferences"
 import type { RoutineProductSuggestion, SuggestionCategory } from "@/lib/routine-recommendations"
 
 const CATEGORY_LABELS: Record<SuggestionCategory, string> = {
@@ -23,7 +24,8 @@ export default function ProductSuggestion({
   suggestion: RoutineProductSuggestion
 }) {
   const { product, knowledge, matchReasons } = suggestion
-  const links = getProductStoreLinks(product)
+  const { amazonStore } = usePreferences()
+  const links = getPrimaryStoreLinks(product, amazonStore)
 
   return (
     <article className="flex h-full flex-col overflow-hidden rounded-3xl border border-border bg-white/85 shadow-soft">

@@ -3,8 +3,9 @@
 import { useEffect, useRef, useState } from "react"
 import { useRouter } from "next/navigation"
 import { Loader2, Search } from "lucide-react"
-import { formatPrice } from "@/lib/format"
-import { CATEGORIES, type Product } from "@/lib/products"
+import { formatDisplayPrice } from "@/lib/currency"
+import { usePreferences } from "@/lib/preferences"
+import { type Product } from "@/lib/products"
 import { ProductImage } from "@/components/product-card"
 
 type ProductSearchProps = {
@@ -27,10 +28,8 @@ function normalize(value: string): string {
   return value.replace(/\s+/g, " ").trim()
 }
 
-function categoryLabel(product: Product): string | null {
-  const id = product.categories[0]
-  if (!id) return null
-  return CATEGORIES.find((category) => category.id === id)?.label ?? id
+function categoryId(product: Product): string | null {
+  return product.categories[0] ?? null
 }
 
 export default function ProductSearch({
@@ -41,6 +40,7 @@ export default function ProductSearch({
   onChange,
 }: ProductSearchProps) {
   const router = useRouter()
+  const { t, currency, locale } = usePreferences()
   const rootRef = useRef<HTMLDivElement>(null)
   const lastValue = useRef(value)
   const [searchTerm, setSearchTerm] = useState(value)
@@ -149,8 +149,8 @@ export default function ProductSearch({
             if (term.length > 0) setShowSuggestions(true)
           }}
           onKeyDown={handleKeyDown}
-          placeholder="Search products, brands, or categories"
-          aria-label="Search products, brands, or categories"
+          placeholder={t("shop.searchPlaceholder")}
+          aria-label={t("shop.searchLabel")}
           className="h-11 w-full rounded-full border border-input bg-white pl-10 pr-10 text-sm text-midnight placeholder:text-muted-foreground focus-visible:outline-2"
         />
         {searching && (
@@ -163,7 +163,7 @@ export default function ProductSearch({
 
       {open && (
         <div className="absolute left-0 right-0 top-full z-50 mt-2 overflow-hidden rounded-2xl border border-border bg-white shadow-xl">
-          <ul id={suggestionListId} role="listbox" aria-label="Product suggestions">
+          <ul id={suggestionListId} role="listbox" aria-label={t("shop.suggestions")}>
             {suggestions.map((product, index) => (
               <li
                 key={product.id}
@@ -193,12 +193,14 @@ export default function ProductSearch({
                     </span>
                     <span className="block truncate text-xs text-muted-foreground">
                       {product.brand}
-                      {categoryLabel(product) ? ` · ${categoryLabel(product)}` : ""}
+                      {categoryId(product)
+                        ? ` · ${t(`categories.${categoryId(product)}`)}`
+                        : ""}
                     </span>
                   </span>
                   {product.price && (
                     <span className="shrink-0 text-xs font-semibold text-winter">
-                      {formatPrice(product.price)}
+                      {formatDisplayPrice(product.price, currency, locale)}
                     </span>
                   )}
                 </button>
@@ -206,11 +208,11 @@ export default function ProductSearch({
             ))}
           </ul>
           {searching && (
-            <p className="px-4 py-3 text-sm text-muted-foreground">Searching…</p>
+            <p className="px-4 py-3 text-sm text-muted-foreground">{t("shop.searching")}</p>
           )}
           {!searching && synced && suggestions.length === 0 && (
             <p className="px-4 py-3 text-sm text-muted-foreground">
-              No products match “{term}”.
+              {t("shop.noResults", { term })}
             </p>
           )}
         </div>

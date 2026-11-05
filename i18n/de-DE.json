@@ -1,0 +1,127 @@
+{
+  "meta": {
+    "languageName": "Deutsch",
+    "short": "DE"
+  },
+  "languageNames": {
+    "en-US": "Englisch (US)",
+    "en-GB": "Englisch (UK)",
+    "fr-FR": "Französisch",
+    "de-DE": "Deutsch",
+    "ko-KR": "Koreanisch"
+  },
+  "countries": {
+    "US": "Vereinigte Staaten",
+    "GB": "Vereinigtes Königreich",
+    "CA": "Kanada",
+    "FR": "Frankreich",
+    "DE": "Deutschland",
+    "KR": "Südkorea",
+    "EU": "Europäische Union"
+  },
+  "language": {
+    "label": "Sprache"
+  },
+  "nav": {
+    "primary": "Hauptnavigation",
+    "shop": "Shop",
+    "about": "Über uns",
+    "contact": "Kontakt",
+    "menu": "Menü",
+    "closeMenu": "Menü schließen"
+  },
+  "common": {
+    "close": "Schließen",
+    "loading": "Wird geladen…",
+    "play": "Abspielen",
+    "pause": "Pause",
+    "previous": "Zurück",
+    "next": "Weiter",
+    "reset": "Zurücksetzen",
+    "viewProduct": "Produkt ansehen"
+  },
+  "shop": {
+    "eyebrow": "Die Kollektion",
+    "title": "Koreanische Hautpflege, kuratiert",
+    "subtitle": "{count} Produkte von vertrauenswürdigen K-Beauty-Marken. Tippen Sie auf ein Produkt für Details oder gehen Sie direkt zum Shop.",
+    "affiliate": "Als Amazon-Partner (Amazon US, Amazon UK) und Stylevana-Affiliate-Partner erhält FrostDew eine Provision für qualifizierte Käufe. Preise können sich ändern – prüfen Sie den aktuellen Preis im Shop.",
+    "showing": "{shown} von {total} Produkten werden angezeigt",
+    "emptyTitle": "Keine Produkte entsprechen Ihrer Suche oder Ihren Filtern",
+    "clear": "Suche und Filter löschen",
+    "showMore": "Weitere Produkte anzeigen",
+    "searchPlaceholder": "Produkte, Marken oder Kategorien suchen",
+    "searchLabel": "Produkte, Marken oder Kategorien suchen",
+    "searching": "Suche…",
+    "noResults": "Keine Produkte entsprechen „{term}“.",
+    "suggestions": "Produktvorschläge",
+    "filters": "Filter",
+    "category": "Kategorie",
+    "allCategories": "Alle Kategorien",
+    "maxPrice": "Höchstpreis: {value}",
+    "minimumRating": "Mindestbewertung",
+    "minimumRatingLabel": "Mindestbewertung",
+    "any": "Beliebig",
+    "stars": "{count} Sterne und mehr",
+    "sortBy": "Sortieren nach",
+    "sorts": {
+      "featured": "Empfohlen",
+      "newest": "Neu",
+      "price-low": "Preis: aufsteigend",
+      "price-high": "Preis: absteigend",
+      "rating": "Beste Bewertung"
+    }
+  },
+  "categories": {
+    "all": "Alle",
+    "masks": "Masken",
+    "serums": "Seren",
+    "toners": "Toner",
+    "moisturizers": "Feuchtigkeitspflege",
+    "sunscreens": "Sonnenschutz",
+    "cleansers": "Reinigung",
+    "lip-care": "Lippenpflege",
+    "sets": "Sets"
+  },
+  "product": {
+    "bestseller": "Bestseller",
+    "added": "Hinzugefügt",
+    "view": "{name} ansehen",
+    "compare": "Preise vergleichen",
+    "details": "Vollständige Produktdetails",
+    "checkPrice": "Preis prüfen bei {store}",
+    "priceNote": "Preis und Verfügbarkeit können sich ändern. Bitte prüfen Sie den Preis im Shop.",
+    "affiliateNote": "Wir können eine Provision für Käufe über diese Links erhalten – für Sie entstehen keine zusätzlichen Kosten.",
+    "ratingLabel": "Bewertet mit {rating} von 5",
+    "ratingReviews": "Bewertet mit {rating} von 5 aus {count}",
+    "reviews": "{count} Bewertungen",
+    "review": "{count} Bewertung",
+    "back": "Zurück zur Kollektion",
+    "about": "Über dieses Produkt",
+    "related": "Das könnte Ihnen auch gefallen"
+  },
+  "audio": {
+    "listen": "Anhören",
+    "title": "Audio-Concierge",
+    "subtitle": "Ein geführter Rundgang durch die Kollektion, vorgelesen.",
+    "open": "Audio-Concierge öffnen",
+    "close": "Audio-Concierge schließen",
+    "nowReading": "Wird gelesen",
+    "counter": "{current} von {total}",
+    "play": "Abspielen",
+    "pause": "Pause",
+    "previous": "Vorheriges Produkt",
+    "next": "Nächstes Produkt",
+    "readingMode": "Lesemodus",
+    "noVoice": "Auf diesem Gerät ist keine Premium-Stimme für {language} verfügbar. Der Lesemodus folgt dem Text ohne Sprachausgabe.",
+    "voice": "Stimme: {voice}",
+    "loading": "Kollektion wird geladen…",
+    "error": "Der Audio-Guide konnte nicht geladen werden. Bitte versuchen Sie es erneut.",
+    "empty": "Derzeit sind keine Produkte zum Vorlesen verfügbar.",
+    "region": "Land",
+    "currency": "Währung",
+    "spaceHint": "Leertaste: Abspielen/Pause",
+    "originalLanguage": "Produktdetails werden in ihrer Originalsprache gelesen.",
+    "thumbnailLabel": "{name} öffnen",
+    "waveLabel": "Audio wird abgespielt"
+  }
+}

@@ -1,0 +1,127 @@
+{
+  "meta": {
+    "languageName": "Français",
+    "short": "FR"
+  },
+  "languageNames": {
+    "en-US": "Anglais (US)",
+    "en-GB": "Anglais (UK)",
+    "fr-FR": "Français",
+    "de-DE": "Allemand",
+    "ko-KR": "Coréen"
+  },
+  "countries": {
+    "US": "États-Unis",
+    "GB": "Royaume-Uni",
+    "CA": "Canada",
+    "FR": "France",
+    "DE": "Allemagne",
+    "KR": "Corée du Sud",
+    "EU": "Union européenne"
+  },
+  "language": {
+    "label": "Langue"
+  },
+  "nav": {
+    "primary": "Navigation principale",
+    "shop": "Boutique",
+    "about": "À propos",
+    "contact": "Contact",
+    "menu": "Menu",
+    "closeMenu": "Fermer le menu"
+  },
+  "common": {
+    "close": "Fermer",
+    "loading": "Chargement…",
+    "play": "Lecture",
+    "pause": "Pause",
+    "previous": "Précédent",
+    "next": "Suivant",
+    "reset": "Réinitialiser",
+    "viewProduct": "Voir le produit"
+  },
+  "shop": {
+    "eyebrow": "La Collection",
+    "title": "Soins coréens, sélectionnés",
+    "subtitle": "{count} produits de marques K-beauty de confiance. Touchez un produit pour voir les détails ou allez directement en boutique.",
+    "affiliate": "En tant qu'associé Amazon (Amazon US, Amazon UK) et partenaire affilié Stylevana, FrostDew perçoit une commission sur les achats éligibles. Les prix peuvent changer : vérifiez le prix actuel en boutique.",
+    "showing": "Affichage de {shown} sur {total} produits",
+    "emptyTitle": "Aucun produit ne correspond à votre recherche ou à vos filtres",
+    "clear": "Effacer la recherche et les filtres",
+    "showMore": "Afficher plus de produits",
+    "searchPlaceholder": "Rechercher des produits, des marques ou des catégories",
+    "searchLabel": "Rechercher des produits, des marques ou des catégories",
+    "searching": "Recherche…",
+    "noResults": "Aucun produit ne correspond à « {term} ».",
+    "suggestions": "Suggestions de produits",
+    "filters": "Filtres",
+    "category": "Catégorie",
+    "allCategories": "Toutes les catégories",
+    "maxPrice": "Prix maximum : {value}",
+    "minimumRating": "Note minimale",
+    "minimumRatingLabel": "Note minimale",
+    "any": "Toutes",
+    "stars": "{count} étoiles et plus",
+    "sortBy": "Trier par",
+    "sorts": {
+      "featured": "En vedette",
+      "newest": "Nouveautés",
+      "price-low": "Prix : croissant",
+      "price-high": "Prix : décroissant",
+      "rating": "Meilleure note"
+    }
+  },
+  "categories": {
+    "all": "Tout",
+    "masks": "Masques",
+    "serums": "Sérums",
+    "toners": "Toniques",
+    "moisturizers": "Hydratants",
+    "sunscreens": "Crèmes solaires",
+    "cleansers": "Nettoyants",
+    "lip-care": "Soins des lèvres",
+    "sets": "Coffrets"
+  },
+  "product": {
+    "bestseller": "Meilleure vente",
+    "added": "Ajouté",
+    "view": "Voir {name}",
+    "compare": "Comparer les prix",
+    "details": "Voir tous les détails du produit",
+    "checkPrice": "Vérifier le prix sur {store}",
+    "priceNote": "Le prix et la disponibilité peuvent changer. Veuillez vérifier en boutique.",
+    "affiliateNote": "Nous pouvons percevoir une commission sur les achats effectués via ces liens, sans coût supplémentaire pour vous.",
+    "ratingLabel": "Note de {rating} sur 5",
+    "ratingReviews": "Note de {rating} sur 5 d'après {count}",
+    "reviews": "{count} avis",
+    "review": "{count} avis",
+    "back": "Retour à la collection",
+    "about": "À propos de ce produit",
+    "related": "Vous aimerez aussi"
+  },
+  "audio": {
+    "listen": "Écouter",
+    "title": "Concierge audio",
+    "subtitle": "Une visite guidée de la collection, lue à voix haute.",
+    "open": "Ouvrir le concierge audio",
+    "close": "Fermer le concierge audio",
+    "nowReading": "Lecture en cours",
+    "counter": "{current} sur {total}",
+    "play": "Lecture",
+    "pause": "Pause",
+    "previous": "Produit précédent",
+    "next": "Produit suivant",
+    "readingMode": "Mode lecture",
+    "noVoice": "Aucune voix premium en {language} n'est disponible sur cet appareil. Le mode lecture suit le texte sans synthèse vocale.",
+    "voice": "Voix : {voice}",
+    "loading": "Chargement de la collection…",
+    "error": "Le guide audio n'a pas pu se charger. Veuillez réessayer.",
+    "empty": "Aucun produit n'est disponible à la lecture pour le moment.",
+    "region": "Pays",
+    "currency": "Devise",
+    "spaceHint": "Espace : lecture/pause",
+    "originalLanguage": "Les détails du produit sont lus dans leur langue d'origine.",
+    "thumbnailLabel": "Ouvrir {name}",
+    "waveLabel": "Lecture audio en cours"
+  }
+}

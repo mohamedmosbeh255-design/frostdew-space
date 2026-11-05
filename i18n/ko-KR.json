@@ -1,0 +1,127 @@
+{
+  "meta": {
+    "languageName": "한국어",
+    "short": "KO"
+  },
+  "languageNames": {
+    "en-US": "영어(미국)",
+    "en-GB": "영어(영국)",
+    "fr-FR": "프랑스어",
+    "de-DE": "독일어",
+    "ko-KR": "한국어"
+  },
+  "countries": {
+    "US": "미국",
+    "GB": "영국",
+    "CA": "캐나다",
+    "FR": "프랑스",
+    "DE": "독일",
+    "KR": "대한민국",
+    "EU": "유럽연합"
+  },
+  "language": {
+    "label": "언어"
+  },
+  "nav": {
+    "primary": "주요 메뉴",
+    "shop": "쇼핑",
+    "about": "소개",
+    "contact": "문의",
+    "menu": "메뉴",
+    "closeMenu": "메뉴 닫기"
+  },
+  "common": {
+    "close": "닫기",
+    "loading": "불러오는 중…",
+    "play": "재생",
+    "pause": "일시정지",
+    "previous": "이전",
+    "next": "다음",
+    "reset": "초기화",
+    "viewProduct": "제품 보기"
+  },
+  "shop": {
+    "eyebrow": "컬렉션",
+    "title": "엄선한 한국 스킨케어",
+    "subtitle": "신뢰하는 K-뷰티 브랜드의 제품 {count}개. 제품을 눌러 자세히 보거나 스토어로 바로 이동하세요.",
+    "affiliate": "FrostDew는 Amazon Associates(Amazon US, Amazon UK) 및 Stylevana 제휴 파트너로서 적격 구매에 대해 수수료를 받습니다. 가격은 변경될 수 있으므로 스토어에서 현재 가격을 확인하세요.",
+    "showing": "전체 {total}개 중 {shown}개 표시",
+    "emptyTitle": "검색어나 필터에 맞는 제품이 없습니다",
+    "clear": "검색 및 필터 지우기",
+    "showMore": "제품 더 보기",
+    "searchPlaceholder": "제품, 브랜드 또는 카테고리 검색",
+    "searchLabel": "제품, 브랜드 또는 카테고리 검색",
+    "searching": "검색 중…",
+    "noResults": "“{term}”에 맞는 제품이 없습니다.",
+    "suggestions": "제품 제안",
+    "filters": "필터",
+    "category": "카테고리",
+    "allCategories": "모든 카테고리",
+    "maxPrice": "최대 가격: {value}",
+    "minimumRating": "최소 평점",
+    "minimumRatingLabel": "최소 평점",
+    "any": "전체",
+    "stars": "{count}점 이상",
+    "sortBy": "정렬 기준",
+    "sorts": {
+      "featured": "추천순",
+      "newest": "최신순",
+      "price-low": "가격: 낮은순",
+      "price-high": "가격: 높은순",
+      "rating": "평점 높은순"
+    }
+  },
+  "categories": {
+    "all": "전체",
+    "masks": "마스크",
+    "serums": "세럼",
+    "toners": "토너",
+    "moisturizers": "보습제",
+    "sunscreens": "선케어",
+    "cleansers": "클렌저",
+    "lip-care": "립 케어",
+    "sets": "세트"
+  },
+  "product": {
+    "bestseller": "베스트셀러",
+    "added": "추가일",
+    "view": "{name} 보기",
+    "compare": "가격 비교",
+    "details": "전체 제품 정보",
+    "checkPrice": "{store} 가격 확인",
+    "priceNote": "가격과 재고는 변경될 수 있습니다. 스토어에서 확인하세요.",
+    "affiliateNote": "이 링크를 통한 구매 시 추가 비용 없이 당사가 수수료를 받을 수 있습니다.",
+    "ratingLabel": "5점 만점에 {rating}점",
+    "ratingReviews": "{count}개 평가 기준 5점 만점에 {rating}점",
+    "reviews": "리뷰 {count}개",
+    "review": "리뷰 {count}개",
+    "back": "컬렉션으로 돌아가기",
+    "about": "제품 정보",
+    "related": "함께 보면 좋은 제품"
+  },
+  "audio": {
+    "listen": "듣기",
+    "title": "오디오 컨시어지",
+    "subtitle": "컬렉션을 음성으로 안내해 드립니다.",
+    "open": "오디오 컨시어지 열기",
+    "close": "오디오 컨시어지 닫기",
+    "nowReading": "지금 읽는 중",
+    "counter": "{total}개 중 {current}번째",
+    "play": "재생",
+    "pause": "일시정지",
+    "previous": "이전 제품",
+    "next": "다음 제품",
+    "readingMode": "읽기 모드",
+    "noVoice": "이 기기에는 {language} 프리미엄 음성이 없습니다. 읽기 모드는 음성 합성 없이 텍스트를 따라갑니다.",
+    "voice": "음성: {voice}",
+    "loading": "컬렉션을 불러오는 중…",
+    "error": "오디오 가이드를 불러오지 못했습니다. 다시 시도해 주세요.",
+    "empty": "지금은 읽을 수 있는 제품이 없습니다.",
+    "region": "국가",
+    "currency": "통화",
+    "spaceHint": "스페이스: 재생/일시정지",
+    "originalLanguage": "제품 정보는 원문 언어로 읽힙니다.",
+    "thumbnailLabel": "{name} 열기",
+    "waveLabel": "오디오 재생 중"
+  }
+}

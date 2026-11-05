@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from
 import { useRouter } from "next/navigation"
 import { X } from "lucide-react"
 import { type Product } from "@/lib/products"
-import { AFFILIATE_PROXIMITY_NOTE } from "@/lib/site"
+import { usePreferences } from "@/lib/preferences"
 import {
   defaultShopFilters,
   parseShopQuery,
@@ -59,6 +59,7 @@ export default function Shop({
   maxCatalogPrice,
 }: ShopProps) {
   const router = useRouter()
+  const { t } = usePreferences()
   const [query, setQuery] = useState(initialQuery)
   const [filters, setFilters] = useState(initialFilters)
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE)
@@ -142,19 +143,14 @@ export default function Shop({
     <section id="shop" aria-labelledby="shop-title" className="relative py-20 sm:py-24">
       <div className="mx-auto max-w-7xl px-6">
         <div className="mx-auto max-w-2xl text-center">
-          <p className="mb-3 text-xs font-bold uppercase tracking-[0.4em] text-secondary-600">The Collection</p>
+          <p className="mb-3 text-xs font-bold uppercase tracking-[0.4em] text-secondary-600">{t("shop.eyebrow")}</p>
           <h2 id="shop-title" className="font-display text-4xl font-medium text-midnight sm:text-5xl">
-            Korean skincare, curated
+            {t("shop.title")}
           </h2>
           <p className="mt-4 leading-relaxed text-muted-foreground">
-            {products.length} products from trusted K-beauty brands. Tap any product for details, or go
-            straight to the store.
+            {t("shop.subtitle", { count: products.length })}
           </p>
-          <p className="mt-3 text-sm text-muted-foreground">
-            As an Amazon Associate (Amazon US, Amazon UK) and a Stylevana affiliate partner, FrostDew
-            earns a commission from qualifying purchases. Prices may change, so please check the store
-            for the current price.
-          </p>
+          <p className="mt-3 text-sm text-muted-foreground">{t("shop.affiliate")}</p>
         </div>
 
         <div className="mt-12 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -166,7 +162,7 @@ export default function Shop({
             onChange={handleQueryChange}
           />
           <p className="text-sm text-muted-foreground" role="status" aria-live="polite">
-            Showing {shown.length} of {results.length} products
+            {t("shop.showing", { shown: shown.length, total: results.length })}
           </p>
         </div>
 
@@ -182,21 +178,21 @@ export default function Shop({
         </div>
 
         <p className="mt-4 text-xs leading-relaxed text-muted-foreground">
-          {AFFILIATE_PROXIMITY_NOTE}
+          {t("product.affiliateNote")}
         </p>
 
         <div aria-busy={isPending} className={isPending ? "opacity-60 transition-opacity" : "transition-opacity"}>
           {results.length === 0 ? (
             <div className="mt-10 flex flex-col items-center gap-4 rounded-2xl border border-dashed border-input bg-white/60 px-6 py-16 text-center">
               <p className="font-display text-xl text-midnight">
-                No products match your search or filters
+                {t("shop.emptyTitle")}
               </p>
               <button
                 type="button"
                 onClick={reset}
                 className="inline-flex items-center gap-2 rounded-full bg-primary-700 px-5 py-2.5 text-sm font-bold text-white shadow-soft hover:bg-primary-600"
               >
-                <X className="h-4 w-4" aria-hidden="true" /> Clear search &amp; filters
+                <X className="h-4 w-4" aria-hidden="true" /> {t("shop.clear")}
               </button>
             </div>
           ) : (
@@ -219,7 +215,7 @@ export default function Shop({
                 onClick={() => setVisibleCount((n) => n + PAGE_SIZE)}
                 className="rounded-full border border-secondary-600 px-8 py-3 text-sm font-bold text-secondary-700 transition-colors hover:bg-secondary-600 hover:text-white"
               >
-                Show more products
+                {t("shop.showMore")}
               </button>
             </div>
           )}

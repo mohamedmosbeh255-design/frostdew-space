@@ -4,7 +4,7 @@ import { useEffect, useRef } from "react"
 import { Check, X } from "lucide-react"
 import { formatAddedDateFull } from "@/lib/format"
 import { type Product } from "@/lib/products"
-import { AFFILIATE_PROXIMITY_NOTE } from "@/lib/site"
+import { usePreferences } from "@/lib/preferences"
 import { BuyLink, PriceTag, ProductImage, Rating } from "./product-card"
 import ProductGallery from "./product-gallery"
 
@@ -21,6 +21,7 @@ export default function ProductDialog({
 }) {
   const ref = useRef<HTMLDialogElement>(null)
   const bodyRef = useRef<HTMLDivElement>(null)
+  const { t } = usePreferences()
 
   useEffect(() => {
     const dialog = ref.current
@@ -61,7 +62,7 @@ export default function ProductDialog({
           <button
             type="button"
             onClick={() => ref.current?.close()}
-            aria-label="Close"
+            aria-label={t("common.close")}
             className="absolute right-3 top-3 z-10 flex h-10 w-10 items-center justify-center rounded-full bg-white/90 text-winter shadow transition-colors hover:bg-ice"
           >
             <X className="h-5 w-5" />
@@ -98,7 +99,7 @@ export default function ProductDialog({
                     <p className="text-xs text-muted-foreground">
                       <time
                         dateTime={product.addedDate}
-                        title={`Added ${addedLabel}`}
+                        title={`${t("product.added")} ${addedLabel}`}
                       >
                         {addedLabel}
                       </time>
@@ -107,7 +108,7 @@ export default function ProductDialog({
                 </div>
               )}
               <p className="text-xs leading-relaxed text-muted-foreground">
-                {AFFILIATE_PROXIMITY_NOTE}
+                {t("product.affiliateNote")}
               </p>
               <BuyLink product={product} className="w-full" />
             </div>
@@ -119,7 +120,7 @@ export default function ProductDialog({
               className="border-t border-border bg-snow p-6 sm:p-8 md:col-span-2"
             >
               <h3 id="related-heading" className="font-display text-xl text-midnight">
-                You may also like
+                {t("product.related")}
               </h3>
               <ul className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
                 {related.map((item) => (
@@ -127,7 +128,7 @@ export default function ProductDialog({
                     <button
                       type="button"
                       onClick={() => onSelectRelated?.(item)}
-                      aria-label={`View ${item.brand} ${item.name}`}
+                      aria-label={t("product.view", { name: `${item.brand} ${item.name}` })}
                       className="flex h-full w-full flex-col gap-1 rounded-xl border border-border bg-white p-2 text-left transition-colors hover:bg-ice focus-visible:outline-2"
                     >
                       <ProductImage

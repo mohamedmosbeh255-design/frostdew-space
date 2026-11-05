@@ -6,21 +6,28 @@ import { ExternalLink, Scale, Star } from "lucide-react"
 import {
   discountPercent,
   formatAddedDateFull,
-  formatPrice,
+  formatNumber,
   formatRating,
-  reviewCountLabel,
 } from "@/lib/format"
+import { formatDisplayPrice } from "@/lib/currency"
 import { type Product } from "@/lib/products"
-import { getProductStoreLinks } from "@/lib/store-links"
+import { getPrimaryStoreLinks } from "@/lib/store-links"
+import { usePreferences } from "@/lib/preferences"
 import OptimizedImage from "@/components/ui/OptimizedImage"
 import ComparePricesDialog from "./compare-prices-dialog"
 
 export function Rating({ rating, reviewCount }: { rating: number; reviewCount?: number }) {
+  const { t } = usePreferences()
   const filled = Math.round(rating)
+  const count = reviewCount === undefined ? null : formatNumber(reviewCount)
+  const countLabel =
+    count === null
+      ? null
+      : t(reviewCount === 1 ? "product.review" : "product.reviews", { count })
   const label =
-    reviewCount === undefined
-      ? `Rated ${formatRating(rating)} out of 5`
-      : `Rated ${formatRating(rating)} out of 5 from ${reviewCountLabel(reviewCount)}`
+    count === null
+      ? t("product.ratingLabel", { rating: formatRating(rating) })
+      : t("product.ratingReviews", { rating: formatRating(rating), count })
   return (
     <div className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5" aria-label={label}>
       <span className="flex" aria-hidden="true">
@@ -38,9 +45,9 @@ export function Rating({ rating, reviewCount }: { rating: number; reviewCount?: 
       <span className="text-xs font-semibold text-midnight" aria-hidden="true">
         {formatRating(rating)}
       </span>
-      {reviewCount !== undefined && (
+      {countLabel !== null && (
         <span className="text-xs text-muted-foreground" aria-hidden="true">
-          ({reviewCountLabel(reviewCount)})
+          ({countLabel})
         </span>
       )}
     </div>
@@ -54,8 +61,10 @@ export function PriceTag({
   product: Product
   size?: "sm" | "lg"
 }) {
+  const { currency, locale } = usePreferences()
   if (!product.price) return null
 
+  const display = (value: string) => formatDisplayPrice(value, currency, locale)
   const prominentClass =
     size === "lg" ? "text-lg font-semibold text-midnight" : "text-sm font-semibold text-midnight"
   const originalClass =
@@ -65,13 +74,13 @@ export function PriceTag({
 
   // No sale, or a pair the validator would reject: render exactly as before.
   if (!product.salePrice || percent === null) {
-    return <p className={prominentClass}>{formatPrice(product.price)}</p>
+    return <p className={prominentClass}>{display(product.price)}</p>
   }
 
   return (
     <div className="flex flex-wrap items-center gap-2">
-      <p className={prominentClass}>{formatPrice(product.salePrice)}</p>
-      <p className={originalClass}>{formatPrice(product.price)}</p>
+      <p className={prominentClass}>{display(product.salePrice)}</p>
+      <p className={originalClass}>{display(product.price)}</p>
       <span className="inline-flex items-center rounded-full bg-secondary-600 px-2 py-0.5 text-[0.65rem] font-bold uppercase tracking-[0.14em] text-white">
         -{percent}%
       </span>
@@ -120,7 +129,8 @@ export function ProductImage({
 }
 
 export function BuyLink({ product, className }: { product: Product; className?: string }) {
-  const links = getProductStoreLinks(product)
+  const { amazonStore, t } = usePreferences()
+  const links = getPrimaryStoreLinks(product, amazonStore)
   // Accent-700 keeps white label text above the 4.5:1 contrast threshold
   // (accent-500 would not), while still reading as an urgent commerce CTA.
   const primaryClass =
@@ -137,7 +147,7 @@ export function BuyLink({ product, className }: { product: Product; className?: 
             href={link.url}
             target="_blank"
             rel="sponsored noopener noreferrer"
-            aria-label={`Check price on ${link.label}`}
+            aria-label={t("product.checkPrice", { store: link.label })}
             className={`inline-flex flex-1 items-center justify-center gap-2 whitespace-nowrap rounded-full px-3 py-2.5 text-sm font-bold transition-colors ${index === 0 ? primaryClass : secondaryClass}`}
           >
             {link.label}
@@ -146,7 +156,7 @@ export function BuyLink({ product, className }: { product: Product; className?: 
         ))}
       </div>
       <p className="text-center text-xs leading-snug text-muted-foreground">
-        Price and availability may change. Please verify on the store.
+        {t("product.priceNote")}
       </p>
     </div>
   )
@@ -162,6 +172,7 @@ export default function ProductCard({
   /** Preload the card image because it is one of the first products shown. */
   priority?: boolean
 }) {
+  const { t } = usePreferences()
   // Only render dates we can format. Falling back to the raw stored value used
   // to leak full ISO timestamps into the card.
   const addedLabel = product.addedDate ? formatAddedDateFull(product.addedDate) : null
@@ -176,7 +187,7 @@ export default function ProductCard({
       <button
         type="button"
         onClick={() => onOpen(product)}
-        aria-label={`View details for ${product.brand} ${product.name}`}
+        aria-label={t("product.view", { name: `${product.brand} ${product.name}` })}
         className="flex flex-1 flex-col text-left focus-visible:-outline-offset-4"
       >
         <div className="relative aspect-square w-full overflow-hidden bg-white">
@@ -188,7 +199,7 @@ export default function ProductCard({
           />
           {product.bestseller && (
             <span className="absolute left-3 top-3 rounded-full bg-accent-700 px-3 py-1 text-[0.65rem] font-bold uppercase tracking-[0.14em] text-white shadow-soft">
-              Bestseller
+              {t("product.bestseller")}
             </span>
           )}
         </div>
@@ -210,7 +221,7 @@ export default function ProductCard({
                 <p className="text-xs text-muted-foreground">
                   <time
                     dateTime={product.addedDate}
-                    title={`Added ${addedLabel}`}
+                    title={`${t("product.added")} ${addedLabel}`}
                   >
                     {addedLabel}
                   </time>
@@ -230,14 +241,14 @@ export default function ProductCard({
             className="inline-flex items-center justify-center gap-2 rounded-full border border-primary-500/40 bg-white px-3 py-2 text-sm font-bold text-primary-700 transition-colors hover:bg-primary-50"
           >
             <Scale className="h-3.5 w-3.5" aria-hidden="true" />
-            Compare prices
+            {t("product.compare")}
           </button>
         )}
         <Link
           href={`/products/${product.id}`}
           className="text-center text-xs font-semibold text-primary-600 underline decoration-primary-500/40 underline-offset-2 transition-colors hover:text-primary-700"
         >
-          Full product details
+          {t("product.details")}
         </Link>
       </div>
       {comparisons.length > 0 && (

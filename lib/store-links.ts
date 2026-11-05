@@ -1,4 +1,5 @@
 import type { Product } from "@/lib/products"
+import type { AmazonStore } from "@/lib/regions"
 import { storeLabel } from "@/lib/format"
 
 export const STORE_LINK_ORDER = ["amazonUs", "amazonUk", "stylevana"] as const
@@ -9,6 +10,21 @@ export const STORE_LINK_META: Record<StoreLinkKey, { label: string; legacyStore:
   amazonUs: { label: "Amazon US", legacyStore: "Amazon" },
   amazonUk: { label: "Amazon UK", legacyStore: "Amazon UK" },
   stylevana: { label: "Stylevana", legacyStore: "Stylevana" },
+}
+
+/**
+ * Affiliate tags are kept in sync with `lib/product-rules.mjs`. The catalog
+ * currently stores US URLs, so the UK link is derived from the same ASIN at
+ * runtime to keep the primary CTA on the shopper's local storefront.
+ */
+export const AMAZON_AFFILIATE_TAGS = {
+  amazonUs: "beautynest202-20",
+  amazonUk: "beautynestkor-21",
+} as const
+
+const AMAZON_HOST: Record<"amazonUs" | "amazonUk", string> = {
+  amazonUs: "www.amazon.com",
+  amazonUk: "www.amazon.co.uk",
 }
 
 export type ProductStoreLink = {
@@ -66,4 +82,88 @@ export function getProductStoreLinks(product: Product): ProductStoreLink[] {
   }
 
   return links
+}
+
+/**
+ * Moves the Amazon store that matches the visitor's country to the front so
+ * the primary CTA opens the closest storefront. The relative order of the
+ * remaining links is preserved.
+ */
+export function orderStoreLinksForRegion(
+  links: ProductStoreLink[],
+  preferred: AmazonStore,
+): ProductStoreLink[] {
+  const index = links.findIndex((link) => link.key === preferred)
+  if (index <= 0) return links
+
+  const ordered = [...links]
+  const [first] = ordered.splice(index, 1)
+  ordered.unshift(first)
+  return ordered
+}
+
+/** Pull an ASIN out of a standard Amazon product URL. */
+function extractAmazonAsin(url: string): string | null {
+  try {
+    const parsed = new URL(url)
+    if (!/(^|\.)amazon\./i.test(parsed.hostname)) return null
+    const match = /\/(?:dp|gp\/product)\/([A-Z0-9]{10})(?:[/?]|$)/i.exec(parsed.pathname)
+    return match?.[1]?.toUpperCase() ?? null
+  } catch {
+    return null
+  }
+}
+
+function amazonProductLink(store: "amazonUs" | "amazonUk", asin: string): ProductStoreLink {
+  return {
+    key: store,
+    label: STORE_LINK_META[store].label,
+    url: `https://${AMAZON_HOST[store]}/dp/${asin}?tag=${AMAZON_AFFILIATE_TAGS[store]}`,
+  }
+}
+
+/**
+ * Adds the Amazon store that matches the visitor's country when the catalog
+ * only stored the other one, then moves it to the front. ASINs are shared by
+ * Amazon marketplaces; if a listing is unavailable locally Amazon shows its own
+ * fallback page rather than a dead link.
+ */
+export function getProductStoreLinksForRegion(
+  product: Product,
+  preferred: AmazonStore,
+): ProductStoreLink[] {
+  const links = getProductStoreLinks(product)
+  if (links.some((link) => link.key === preferred)) {
+    return orderStoreLinksForRegion(links, preferred)
+  }
+
+  const fallback: AmazonStore = preferred === "amazonUk" ? "amazonUs" : "amazonUk"
+  const source = links.find((link) => link.key === fallback)
+  const asin = source ? extractAmazonAsin(source.url) : null
+  if (asin && !links.some((link) => link.key === preferred)) {
+    links.push(amazonProductLink(preferred, asin))
+  }
+
+  return orderStoreLinksForRegion(links, preferred)
+}
+
+/**
+ * The compact CTA used on cards and routine suggestions: the preferred Amazon
+ * store first, then every non-Amazon store. The visitor is never shown two
+ * Amazon buttons for different countries.
+ */
+export function getPrimaryStoreLinks(
+  product: Product,
+  preferred: AmazonStore,
+): ProductStoreLink[] {
+  const ordered = getProductStoreLinksForRegion(product, preferred)
+  const amazonLinks = ordered.filter(
+    (link) => link.key === "amazonUs" || link.key === "amazonUk",
+  )
+  if (amazonLinks.length <= 1) return ordered
+
+  const keep = amazonLinks.find((link) => link.key === preferred) ?? amazonLinks[0]
+  return ordered.filter(
+    (link) => (link.key !== "amazonUs" && link.key !== "amazonUk") || link === keep,
+  )
 }

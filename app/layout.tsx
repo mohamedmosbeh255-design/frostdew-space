@@ -1,6 +1,8 @@
 import { Analytics } from '@vercel/analytics/next'
 import type { Metadata, Viewport } from 'next'
 import { Fraunces, Manrope } from 'next/font/google'
+import AudioExperience from '@/components/audio/audio-experience'
+import { PreferencesProvider } from '@/lib/preferences'
 import { SITE_URL } from '@/lib/site'
 import './globals.css'
 
@@ -44,7 +46,10 @@ export default function RootLayout({
   return (
     <html lang="en" data-scroll-behavior="smooth" className={`${manrope.variable} ${fraunces.variable}`}>
       <body>
-        {children}
+        <PreferencesProvider>
+          {children}
+          <AudioExperience />
+        </PreferencesProvider>
         <Analytics />
       </body>
     </html>

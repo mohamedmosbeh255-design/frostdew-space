@@ -1,0 +1,127 @@
+{
+  "meta": {
+    "languageName": "English (US)",
+    "short": "EN"
+  },
+  "languageNames": {
+    "en-US": "English (US)",
+    "en-GB": "English (UK)",
+    "fr-FR": "Français",
+    "de-DE": "Deutsch",
+    "ko-KR": "한국어"
+  },
+  "countries": {
+    "US": "United States",
+    "GB": "United Kingdom",
+    "CA": "Canada",
+    "FR": "France",
+    "DE": "Germany",
+    "KR": "South Korea",
+    "EU": "European Union"
+  },
+  "language": {
+    "label": "Language"
+  },
+  "nav": {
+    "primary": "Primary",
+    "shop": "Shop",
+    "about": "About",
+    "contact": "Contact",
+    "menu": "Menu",
+    "closeMenu": "Close menu"
+  },
+  "common": {
+    "close": "Close",
+    "loading": "Loading…",
+    "play": "Play",
+    "pause": "Pause",
+    "previous": "Previous",
+    "next": "Next",
+    "reset": "Reset",
+    "viewProduct": "View product"
+  },
+  "shop": {
+    "eyebrow": "The Collection",
+    "title": "Korean skincare, curated",
+    "subtitle": "{count} products from trusted K-beauty brands. Tap any product for details, or go straight to the store.",
+    "affiliate": "As an Amazon Associate (Amazon US, Amazon UK) and a Stylevana affiliate partner, FrostDew earns a commission from qualifying purchases. Prices may change, so please check the store for the current price.",
+    "showing": "Showing {shown} of {total} products",
+    "emptyTitle": "No products match your search or filters",
+    "clear": "Clear search & filters",
+    "showMore": "Show more products",
+    "searchPlaceholder": "Search products, brands, or categories",
+    "searchLabel": "Search products, brands, or categories",
+    "searching": "Searching…",
+    "noResults": "No products match “{term}”.",
+    "suggestions": "Product suggestions",
+    "filters": "Filters",
+    "category": "Category",
+    "allCategories": "All categories",
+    "maxPrice": "Max price: {value}",
+    "minimumRating": "Minimum rating",
+    "minimumRatingLabel": "Minimum rating",
+    "any": "Any",
+    "stars": "{count} stars and up",
+    "sortBy": "Sort by",
+    "sorts": {
+      "featured": "Featured",
+      "newest": "Newest",
+      "price-low": "Price: Low to High",
+      "price-high": "Price: High to Low",
+      "rating": "Highest Rating"
+    }
+  },
+  "categories": {
+    "all": "All",
+    "masks": "Masks",
+    "serums": "Serums",
+    "toners": "Toners",
+    "moisturizers": "Moisturizers",
+    "sunscreens": "Sunscreens",
+    "cleansers": "Cleansers",
+    "lip-care": "Lip Care",
+    "sets": "Sets"
+  },
+  "product": {
+    "bestseller": "Bestseller",
+    "added": "Added",
+    "view": "View {name}",
+    "compare": "Compare prices",
+    "details": "Full product details",
+    "checkPrice": "Check price on {store}",
+    "priceNote": "Price and availability may change. Please verify on the store.",
+    "affiliateNote": "We may earn a commission from purchases made through these links, at no extra cost to you.",
+    "ratingLabel": "Rated {rating} out of 5",
+    "ratingReviews": "Rated {rating} out of 5 from {count}",
+    "reviews": "{count} reviews",
+    "review": "{count} review",
+    "back": "Back to the collection",
+    "about": "About this product",
+    "related": "You may also like"
+  },
+  "audio": {
+    "listen": "Listen",
+    "title": "Audio concierge",
+    "subtitle": "A guided tour of the collection, read aloud.",
+    "open": "Open audio concierge",
+    "close": "Close audio concierge",
+    "nowReading": "Now reading",
+    "counter": "{current} of {total}",
+    "play": "Play",
+    "pause": "Pause",
+    "previous": "Previous product",
+    "next": "Next product",
+    "readingMode": "Reading Mode",
+    "noVoice": "No premium {language} voice is available on this device. Reading Mode follows the text without synthesized speech.",
+    "voice": "Voice: {voice}",
+    "loading": "Loading the collection…",
+    "error": "The audio guide could not load. Please try again.",
+    "empty": "No products are available to read right now.",
+    "region": "Country",
+    "currency": "Currency",
+    "spaceHint": "Space: play/pause",
+    "originalLanguage": "Product details are read in their original language.",
+    "thumbnailLabel": "Open {name}",
+    "waveLabel": "Audio playing"
+  }
+}
