@@ -69,7 +69,11 @@ export default function AffiliateDisclosurePage() {
         <p>
           Always check the current price and availability on the retailer&apos;s page before you
           buy. Every store button on this site carries the reminder:{" "}
-          <em>Price and availability may change. Please verify on the store.</em>
+          <em>
+            Prices and ratings at all retailers are subject to change at any time; please visit
+            each retailer&apos;s website for the most up-to-date information. We may earn a
+            commission at no additional cost to you.
+          </em>
         </p>
 
         <h2>How we label affiliate links</h2>

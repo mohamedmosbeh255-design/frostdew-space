@@ -148,22 +148,13 @@ export function getProductStoreLinksForRegion(
 }
 
 /**
- * The compact CTA used on cards and routine suggestions: the preferred Amazon
- * store first, then every non-Amazon store. The visitor is never shown two
- * Amazon buttons for different countries.
+ * The CTA used on cards, dialogs and routine suggestions: every available
+ * store link, with the visitor's preferred Amazon store first. One button
+ * per non-empty link — if a product has three links, three buttons render.
  */
 export function getPrimaryStoreLinks(
   product: Product,
   preferred: AmazonStore,
 ): ProductStoreLink[] {
-  const ordered = getProductStoreLinksForRegion(product, preferred)
-  const amazonLinks = ordered.filter(
-    (link) => link.key === "amazonUs" || link.key === "amazonUk",
-  )
-  if (amazonLinks.length <= 1) return ordered
-
-  const keep = amazonLinks.find((link) => link.key === preferred) ?? amazonLinks[0]
-  return ordered.filter(
-    (link) => (link.key !== "amazonUs" && link.key !== "amazonUk") || link === keep,
-  )
+  return getProductStoreLinksForRegion(product, preferred)
 }
