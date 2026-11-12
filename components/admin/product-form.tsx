@@ -102,9 +102,11 @@ const storeLinkKeyForName = (name: string): StoreLinkKey | null => {
 
 /**
  * Completes the affiliate parameters a pasted URL is missing (Amazon tag,
- * Stylevana ref, Awin ids) so `validateAffiliate` accepts it on save. Hosts
- * that cannot be repaired (a amazon.co.uk link in the Amazon US slot, for
- * example) are returned untouched for the server to judge.
+ * Stylevana ref, Awin ids) so `validateAffiliate` accepts it on save. Amazon
+ * product links also keep only the ASIN (in the path) and the tag, dropping
+ * tracking parameters. Hosts that cannot be repaired (a amazon.co.uk link in
+ * the Amazon US slot, for example) are returned untouched for the server to
+ * judge.
  */
 const normalizeAffiliateValue = (key: StoreLinkKey, raw: string): string => {
   const trimmed = raw.trim()
@@ -132,6 +134,17 @@ const normalizeAffiliateValue = (key: StoreLinkKey, raw: string): string => {
       if (tags.length !== 1 || tags[0] !== expectedTag) {
         url.searchParams.set("tag", expectedTag)
         changed = true
+      }
+      // Product links keep only the ASIN (in the path) and the tag; every
+      // other parameter (th, linkCode, linkId, sr, ref_, …) is tracking.
+      // Search/category URLs (no /dp/ or /gp/product/ path) are left alone.
+      if (/\/dp\/|\/gp\/product\//i.test(url.pathname)) {
+        for (const param of [...url.searchParams.keys()]) {
+          if (param !== "tag") {
+            url.searchParams.delete(param)
+            changed = true
+          }
+        }
       }
     }
   } else if (host === "www.stylevana.com" || host === "stylevana.com") {
