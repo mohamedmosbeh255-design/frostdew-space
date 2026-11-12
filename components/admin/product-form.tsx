@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation"
 import { ChevronDown, Plus, Trash2 } from "lucide-react"
 import {
   ADDED_DATE_PATTERN,
+  AFFILIATE,
   ALLOWED_CATEGORIES,
   ALLOWED_STORES,
   CURRENCY_OPTIONS,
@@ -17,7 +18,7 @@ import {
 } from "@/lib/product-rules.mjs"
 import { mediaSourceKey } from "@/lib/media-source.mjs"
 import type { Product } from "@/lib/products"
-import { parsePrice, todayIsoDate } from "@/lib/format"
+import { parsePrice, storeLabel, todayIsoDate } from "@/lib/format"
 import {
   STORE_LINK_META,
   STORE_LINK_ORDER,
@@ -77,6 +78,111 @@ type FormState = {
 
 const CATEGORY_OPTIONS = [...ALLOWED_CATEGORIES].sort()
 const STORE_OPTIONS = [...ALLOWED_STORES]
+
+/** Subtle notes shown under a field whose affiliate parameters were completed automatically. */
+const TAG_AUTO_NOTE = "Tag added automatically."
+const PARAM_AUTO_NOTE = "Ref/Awin parameters added automatically."
+
+const noteForStoreKey = (key: StoreLinkKey): string =>
+  key === "stylevana" ? PARAM_AUTO_NOTE : TAG_AUTO_NOTE
+
+/** The primary `store` select maps to its `affiliateLinks` slot (Amazon → Amazon US). */
+const storeLinkKeyForStore = (store: string): StoreLinkKey | null =>
+  STORE_LINK_ORDER.find((key) => STORE_LINK_META[key].legacyStore === store) ?? null
+
+/** Best-effort slot for a free-text Store Pricing row name ("Amazon US" → Amazon US). */
+const storeLinkKeyForName = (name: string): StoreLinkKey | null => {
+  const normalized = name.trim().toLowerCase()
+  if (!normalized) return null
+  if (normalized.includes("uk") || normalized.includes("co.uk")) return "amazonUk"
+  if (normalized.includes("amazon")) return "amazonUs"
+  if (normalized.includes("stylevana")) return "stylevana"
+  return null
+}
+
+/**
+ * Completes the affiliate parameters a pasted URL is missing (Amazon tag,
+ * Stylevana ref, Awin ids) so `validateAffiliate` accepts it on save. Hosts
+ * that cannot be repaired (a amazon.co.uk link in the Amazon US slot, for
+ * example) are returned untouched for the server to judge.
+ */
+const normalizeAffiliateValue = (key: StoreLinkKey, raw: string): string => {
+  const trimmed = raw.trim()
+  if (!trimmed) return raw
+
+  let url: URL
+  try {
+    url = new URL(trimmed)
+  } catch {
+    return raw
+  }
+  if (url.protocol !== "https:") return raw
+
+  const host = url.hostname.toLowerCase()
+  let changed = false
+
+  if (key === "amazonUs" || key === "amazonUk") {
+    const expectedTag = key === "amazonUs" ? AFFILIATE.amazonUs : AFFILIATE.amazonUk
+    const allowedHosts =
+      key === "amazonUs"
+        ? ["www.amazon.com", "amazon.com", "amzn.to"]
+        : ["www.amazon.co.uk", "amazon.co.uk"]
+    if (allowedHosts.includes(host)) {
+      const tags = url.searchParams.getAll("tag")
+      if (tags.length !== 1 || tags[0] !== expectedTag) {
+        url.searchParams.set("tag", expectedTag)
+        changed = true
+      }
+    }
+  } else if (host === "www.stylevana.com" || host === "stylevana.com") {
+    const refs = url.searchParams.getAll("ref")
+    if (refs.length !== 1 || refs[0] !== AFFILIATE.stylevanaRef) {
+      url.searchParams.set("ref", AFFILIATE.stylevanaRef)
+      changed = true
+    }
+  } else if (host === "www.awin1.com" || host === "awin1.com") {
+    if (url.searchParams.get("awinmid") !== AFFILIATE.awinMid) {
+      url.searchParams.set("awinmid", AFFILIATE.awinMid)
+      changed = true
+    }
+    if (url.searchParams.get("awinaffid") !== AFFILIATE.awinAffid) {
+      url.searchParams.set("awinaffid", AFFILIATE.awinAffid)
+      changed = true
+    }
+  }
+
+  return changed ? url.toString() : raw
+}
+
+/** Legacy `url` normalization follows whichever store is selected. */
+const normalizePrimaryUrl = (store: string, raw: string): string => {
+  const key = storeLinkKeyForStore(store)
+  return key ? normalizeAffiliateValue(key, raw) : raw
+}
+
+const primaryNoteForStore = (store: string): string => {
+  const key = storeLinkKeyForStore(store)
+  return key ? noteForStoreKey(key) : TAG_AUTO_NOTE
+}
+
+/** ISO 4217 code for the currency symbols `PRICE_PATTERN` accepts. */
+const CURRENCY_SYMBOL_TO_CODE: Record<string, string> = {
+  $: "USD",
+  "£": "GBP",
+  "€": "EUR",
+  "¥": "JPY",
+  "₩": "KRW",
+  "₹": "INR",
+}
+
+/** URL-safe slug for a new id: "Laneige Lip Glowy Balm" → "laneige-lip-glowy-balm". */
+const slugifyId = (value: string): string =>
+  value
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
 
 const isHttps = (value: string): boolean => {
   try {
@@ -295,6 +401,12 @@ type TextFieldProps = {
   autoComplete?: string
   multiline?: boolean
   rows?: number
+  /** Returns the corrected text for pasted input and on blur; identity leaves it untouched. */
+  normalize?: (raw: string) => string
+  /** Signals that `normalize` changed a value, so a subtle note can be shown. */
+  onNormalized?: () => void
+  /** Subtle note rendered under the field (for example after an automatic tag fix). */
+  note?: string
 }
 
 function TextField({
@@ -315,6 +427,9 @@ function TextField({
   autoComplete = "off",
   multiline,
   rows = 3,
+  normalize,
+  onNormalized,
+  note,
 }: TextFieldProps) {
   const shared = {
     id,
@@ -332,6 +447,28 @@ function TextField({
     onChange: (
       event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
     ) => onChange(event.target.value),
+    onBlur: normalize
+      ? () => {
+          if (!value.trim()) return
+          const fixed = normalize(value)
+          if (fixed === value) return
+          onChange(fixed)
+          onNormalized?.()
+        }
+      : undefined,
+    onPaste: normalize
+      ? (event: React.ClipboardEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+          const pasted = event.clipboardData.getData("text")
+          const fixed = normalize(pasted)
+          if (fixed === pasted) return
+          event.preventDefault()
+          const input = event.currentTarget
+          const start = input.selectionStart ?? value.length
+          const end = input.selectionEnd ?? start
+          onChange(value.slice(0, start) + fixed + value.slice(end))
+          onNormalized?.()
+        }
+      : undefined,
     className:
       "w-full rounded-lg border border-border bg-white px-3 py-2 text-sm text-midnight outline-none focus-visible:ring-2 focus-visible:ring-glacier disabled:bg-muted disabled:text-muted-foreground",
   }
@@ -351,6 +488,7 @@ function TextField({
         <input {...shared} type={type} step={step} min={min} max={max} />
       )}
       {hint && <p className="text-xs text-muted-foreground">{hint}</p>}
+      {note && <p className="text-xs font-medium text-glacier">{note}</p>}
       {warning && (
         <p
           id={`${id}-warning`}
@@ -396,6 +534,10 @@ export default function ProductForm({
   const [imagesExpanded, setImagesExpanded] = useState(
     () => (initial?.images?.length ?? 0) > 0,
   )
+  /** Field keys whose affiliate parameters were completed automatically. */
+  const [autoFixed, setAutoFixed] = useState<Record<string, string>>({})
+  /** Create mode only: whether the id was typed by hand (disables the auto-slug). */
+  const [idEdited, setIdEdited] = useState(false)
 
   // Live duplicate check against the trimmed options already loaded by the
   // add/edit page. The API repeats this check as the source of truth.
@@ -425,6 +567,27 @@ export default function ProductForm({
     errors.name === DUPLICATE_NAME_MESSAGE ||
     errors.id === DUPLICATE_ID_MESSAGE
 
+  const markAutoFixed = (field: string, message: string) =>
+    setAutoFixed((current) => ({ ...current, [field]: message }))
+
+  const clearAutoFixed = (field: string) =>
+    setAutoFixed((current) => {
+      if (!(field in current)) return current
+      const next = { ...current }
+      delete next[field]
+      return next
+    })
+
+  /** Drops every Store Pricing note (row indexes shift when rows are added/removed). */
+  const clearRowAutoFixed = () =>
+    setAutoFixed((current) => {
+      const next: Record<string, string> = {}
+      for (const [key, value] of Object.entries(current)) {
+        if (!key.startsWith("storePricing.")) next[key] = value
+      }
+      return next
+    })
+
   const clearImageErrors = () => {
     setErrors((current) => {
       const next = { ...current }
@@ -445,8 +608,17 @@ export default function ProductForm({
       for (const field of fields) delete next[field]
       return next
     })
+    clearAutoFixed(String(key))
     setMessage(null)
     setServerErrors([])
+  }
+
+  /** Create mode: keep the id in step with brand + name until it is typed by hand. */
+  const syncIdFromIdentity = (identity: { brand?: string; name?: string }) => {
+    if (mode !== "create" || idEdited) return
+    const brand = identity.brand ?? values.brand
+    const name = identity.name ?? values.name
+    update("id", slugifyId(`${brand} ${name}`))
   }
 
   const updateAffiliateLink = (key: StoreLinkKey, value: string) => {
@@ -454,6 +626,15 @@ export default function ProductForm({
       ...current,
       affiliateLinks: { ...current.affiliateLinks, [key]: value },
     }))
+    // Clear a stale tag/host error as soon as the link is edited.
+    setErrors((current) => {
+      const field = `affiliateLinks.${key}`
+      if (!current[field]) return current
+      const next = { ...current }
+      delete next[field]
+      return next
+    })
+    clearAutoFixed(`affiliateLinks.${key}`)
   }
 
   const updateStorePricing = (
@@ -472,6 +653,7 @@ export default function ProductForm({
       delete next[`storePricing.${index}.${field}`]
       return next
     })
+    clearAutoFixed(`storePricing.${index}.${field}`)
     setMessage(null)
   }
 
@@ -480,6 +662,7 @@ export default function ProductForm({
       ...current,
       storePricing: [...current.storePricing, { ...EMPTY_STORE_PRICING_ROW }],
     }))
+    clearRowAutoFixed()
     setMessage(null)
   }
 
@@ -509,6 +692,50 @@ export default function ProductForm({
       }
       return next
     })
+    clearRowAutoFixed()
+    setMessage(null)
+  }
+
+  const primaryStoreKey = storeLinkKeyForStore(values.store)
+  const primaryCompareUrl =
+    (primaryStoreKey ? values.affiliateLinks[primaryStoreKey].trim() : "") ||
+    values.url.trim()
+  const primaryComparePrice = values.price.trim()
+    ? parsePrice(values.price.trim())
+    : null
+  const primaryAlreadyAdded = values.storePricing.some(
+    (row) =>
+      row.store.trim() === storeLabel(values.store) &&
+      row.url.trim() === primaryCompareUrl,
+  )
+  /** Non-null when the one-click Compare row cannot be created (shown as a hint). */
+  const primaryPrefillReason = !primaryStoreKey
+    ? "Choose a primary store first."
+    : !primaryCompareUrl
+      ? "Add the primary Affiliate URL first."
+      : !primaryComparePrice
+        ? "Add the primary Price first."
+        : primaryAlreadyAdded
+          ? "The primary store is already in Compare prices."
+          : null
+
+  /** One click: mirror the primary store, price and URL into a Compare prices row. */
+  const addPrimaryStorePricing = () => {
+    if (!primaryStoreKey || !primaryCompareUrl || !primaryComparePrice) return
+
+    setValues((current) => ({
+      ...current,
+      storePricing: [
+        ...current.storePricing,
+        {
+          store: storeLabel(values.store),
+          price: String(primaryComparePrice.amount),
+          currency: CURRENCY_SYMBOL_TO_CODE[primaryComparePrice.currency] ?? "USD",
+          url: normalizeAffiliateValue(primaryStoreKey, primaryCompareUrl),
+        },
+      ],
+    }))
+    clearRowAutoFixed()
     setMessage(null)
   }
 
@@ -702,7 +929,11 @@ export default function ProductForm({
             id="id"
             label="ID (slug)"
             value={values.id}
-            onChange={(value) => update("id", value)}
+            onChange={(value) => {
+              update("id", value)
+              // Typing takes the slug over; clearing it re-enables auto-generation.
+              if (mode === "create") setIdEdited(value.trim() !== "")
+            }}
             error={idMatch ? undefined : errors.id}
             warning={idMatch ? DUPLICATE_ID_MESSAGE : undefined}
             required
@@ -712,14 +943,19 @@ export default function ProductForm({
                 ? `Already used by ${idMatch.brand} — ${idMatch.name}.`
                 : mode === "edit"
                   ? "Immutable after creation."
-                  : "Lowercase, hyphenated, unique."
+                  : idEdited
+                    ? "Lowercase, hyphenated, unique."
+                    : "Auto-generated from brand + name — edit it to take over."
             }
           />
           <TextField
             id="brand"
             label="Brand"
             value={values.brand}
-            onChange={(value) => update("brand", value)}
+            onChange={(value) => {
+              update("brand", value)
+              syncIdFromIdentity({ brand: value })
+            }}
             error={errors.brand}
             required
           />
@@ -727,7 +963,10 @@ export default function ProductForm({
             id="name"
             label="Name"
             value={values.name}
-            onChange={(value) => update("name", value)}
+            onChange={(value) => {
+              update("name", value)
+              syncIdFromIdentity({ name: value })
+            }}
             error={nameMatch ? undefined : errors.name}
             warning={nameMatch ? DUPLICATE_NAME_MESSAGE : undefined}
             hint={
@@ -801,6 +1040,9 @@ export default function ProductForm({
               required
               type="url"
               hint="Primary link. Used when a store-specific link is not provided."
+              normalize={(raw) => normalizePrimaryUrl(values.store, raw)}
+              onNormalized={() => markAutoFixed("url", primaryNoteForStore(values.store))}
+              note={autoFixed.url}
             />
           </div>
 
@@ -1068,6 +1310,7 @@ export default function ProductForm({
           ) : (
             values.storePricing.map((row, index) => {
               const field = `storePricing.${index}`
+              const rowKey = storeLinkKeyForName(row.store)
               const currencyOptions = CURRENCY_OPTIONS.includes(row.currency)
                 ? CURRENCY_OPTIONS
                 : [row.currency, ...CURRENCY_OPTIONS]
@@ -1157,6 +1400,13 @@ export default function ProductForm({
                       error={errors[`${field}.url`]}
                       type="url"
                       placeholder="https://www.amazon.com/dp/…"
+                      normalize={rowKey ? (raw) => normalizeAffiliateValue(rowKey, raw) : undefined}
+                      onNormalized={
+                        rowKey
+                          ? () => markAutoFixed(`${field}.url`, noteForStoreKey(rowKey))
+                          : undefined
+                      }
+                      note={autoFixed[`${field}.url`]}
                     />
                   </div>
                 </div>
@@ -1164,14 +1414,30 @@ export default function ProductForm({
             })
           )}
 
-          <button
-            type="button"
-            onClick={addStorePricing}
-            className="inline-flex w-fit items-center gap-1.5 rounded-full border border-border bg-white px-4 py-2 text-xs font-semibold text-winter transition-colors hover:bg-ice"
-          >
-            <Plus className="h-3.5 w-3.5" aria-hidden="true" />
-            Add Store
-          </button>
+          <div className="flex flex-col gap-1.5">
+            <div className="flex flex-wrap items-center gap-2">
+              <button
+                type="button"
+                onClick={addStorePricing}
+                className="inline-flex w-fit items-center gap-1.5 rounded-full border border-border bg-white px-4 py-2 text-xs font-semibold text-winter transition-colors hover:bg-ice"
+              >
+                <Plus className="h-3.5 w-3.5" aria-hidden="true" />
+                Add Store
+              </button>
+              <button
+                type="button"
+                onClick={addPrimaryStorePricing}
+                disabled={primaryPrefillReason !== null}
+                className="inline-flex w-fit items-center gap-1.5 rounded-full border border-border bg-white px-4 py-2 text-xs font-semibold text-winter transition-colors hover:bg-ice disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                <Plus className="h-3.5 w-3.5" aria-hidden="true" />
+                Add primary store to Compare prices
+              </button>
+            </div>
+            {primaryPrefillReason && (
+              <p className="text-xs text-muted-foreground">{primaryPrefillReason}</p>
+            )}
+          </div>
         </div>
       </fieldset>
 
@@ -1202,6 +1468,9 @@ export default function ProductForm({
                   ? "Use a stylevana.com link with ref=frostdew or an Awin link."
                   : "The store tag is enforced when you save."
               }
+              normalize={(raw) => normalizeAffiliateValue(key, raw)}
+              onNormalized={() => markAutoFixed(`affiliateLinks.${key}`, noteForStoreKey(key))}
+              note={autoFixed[`affiliateLinks.${key}`]}
             />
           ))}
         </div>
