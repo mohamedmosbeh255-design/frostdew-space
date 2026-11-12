@@ -7,7 +7,9 @@ import SiteFooter from "@/components/site-footer"
 import SiteHeader from "@/components/site-header"
 import Snowfall from "@/components/snowfall"
 import { readCatalog } from "@/lib/product-catalog"
+import { getOrderedProducts } from "@/lib/product-rotation"
 import { searchProducts, type ProductSearchFilters } from "@/lib/search"
+import { type Product } from "@/lib/products"
 import { catalogMaxPrice, parseShopQuery } from "@/lib/shop-params"
 import { readSiteSettings } from "@/lib/site-settings"
 
@@ -148,10 +150,17 @@ export default async function Page({ searchParams }: Props) {
     query.filters.maxPrice !== null && query.filters.maxPrice < maxPrice
       ? query.filters.maxPrice
       : null
+  // Homepage-only rotation: when the visitor has not chosen an explicit sort,
+  // pin products added in the last 36h to the top and rotate the rest on a
+  // deterministic 12h seed. Explicit sorts (newest, price, rating) are left
+  // untouched so the existing sort control keeps working as before.
+  const applyRotation = (list: Product[]) =>
+    query.filters.sort === "featured" ? getOrderedProducts(list) : list
+
   const results =
     activeMaxPrice === query.filters.maxPrice
-      ? initialResults
-      : await searchProducts(query.q, buildFilters(activeMaxPrice))
+      ? applyRotation(initialResults)
+      : applyRotation(await searchProducts(query.q, buildFilters(activeMaxPrice)))
 
   return (
     <>
