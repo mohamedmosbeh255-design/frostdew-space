@@ -15,6 +15,48 @@ const STATIC_ASSET_SOURCES = [
   '/fonts/:path*',
 ]
 
+/**
+ * Adds the active Supabase project as an image source without making the build
+ * depend on the env var. The legacy project host stays until its existing
+ * assets are migrated.
+ */
+const REMOTE_PATTERNS = [
+  {
+    protocol: 'https',
+    hostname: 'm.media-amazon.com',
+    pathname: '/images/**',
+  },
+  {
+    protocol: 'https',
+    hostname: 'wlbsswmkoahjzentukns.supabase.co',
+    pathname: '/storage/v1/object/public/**',
+  },
+  {
+    protocol: 'https',
+    hostname: 'cdn-image.oliveyoung.com',
+    pathname: '/prdtImg/**',
+  },
+  {
+    protocol: 'https',
+    hostname: 'sv9-cdn.stylevana.com',
+    pathname: '/media/**',
+  },
+]
+
+try {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim()
+  const hostname = supabaseUrl ? new URL(supabaseUrl).hostname : ''
+  if (hostname && !REMOTE_PATTERNS.some((pattern) => pattern.hostname === hostname)) {
+    REMOTE_PATTERNS.push({
+      protocol: 'https',
+      hostname,
+      pathname: '/storage/v1/object/public/**',
+    })
+  }
+} catch {
+  // A malformed or relative URL should not break the build; uploads still work.
+}
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   images: {
@@ -24,28 +66,7 @@ const nextConfig = {
     // Catalog images are static store/CDN files, so a longer optimizer cache
     // reduces repeat fetches without risking stale admin uploads.
     minimumCacheTTL: 14400,
-    remotePatterns: [
-      {
-        protocol: 'https',
-        hostname: 'm.media-amazon.com',
-        pathname: '/images/**',
-      },
-      {
-        protocol: 'https',
-        hostname: 'wlbsswmkoahjzentukns.supabase.co',
-        pathname: '/storage/v1/object/public/**',
-      },
-      {
-        protocol: 'https',
-        hostname: 'cdn-image.oliveyoung.com',
-        pathname: '/prdtImg/**',
-      },
-      {
-        protocol: 'https',
-        hostname: 'sv9-cdn.stylevana.com',
-        pathname: '/media/**',
-      },
-    ],
+    remotePatterns: REMOTE_PATTERNS,
   },
   async headers() {
     return [

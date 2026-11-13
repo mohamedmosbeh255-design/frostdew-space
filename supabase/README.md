@@ -81,7 +81,48 @@ server-only and bypasses RLS.
 The client code also accepts the newer Supabase key names:
 `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` and `SUPABASE_SECRET_KEY`.
 
-## 4. Client utilities
+## 4. Storage bucket for uploads
+
+Admin media uploads use Supabase Storage. Create the bucket in the **same
+project** as `NEXT_PUBLIC_SUPABASE_URL` / `SUPABASE_SERVICE_ROLE_KEY`:
+
+**Dashboard → Storage → New bucket**
+
+| Setting | Value |
+| --- | --- |
+| Name | `media` (or set `SUPABASE_MEDIA_BUCKET` to another name) |
+| Public bucket | **On** — the site renders these URLs directly |
+| File size limit | **25 MB** |
+| Allowed MIME types | `image/jpeg`, `image/png`, `image/webp`, `image/avif`, `image/gif`, `video/mp4`, `video/webm` |
+
+Or run the reproducible setup:
+
+```bash
+# SQL Editor: paste supabase/storage.sql and run it
+```
+
+`storage.sql` creates the bucket if missing and updates its limits on re-run.
+
+No `storage.objects` INSERT policy is required. The browser uploads with a
+short-lived signed token issued by the server using the service-role key; public
+read works because the bucket is public.
+
+Optional environment variable (defaults to `media`):
+
+```dotenv
+SUPABASE_MEDIA_BUCKET=media
+```
+
+Verify the bucket before deploying:
+
+1. Upload a small image through `/admin` and confirm the returned URL opens in a
+   private window.
+2. Confirm a file over 25 MB is rejected.
+3. Confirm a renamed non-image file (for example a PDF named `.jpg`) is rejected
+   at the confirm step and removed from the bucket.
+4. Request `/_next/image?url=<new public URL>&w=640&q=75` and confirm a 200.
+
+## 5. Client utilities
 
 `lib/supabase.ts` exports:
 
@@ -91,7 +132,7 @@ The client code also accepts the newer Supabase key names:
 
 The module imports `server-only`, so an accidental client-component import fails at build time.
 
-## 5. Verify
+## 6. Verify
 
 After seeding, run in the SQL Editor:
 

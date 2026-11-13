@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react"
 import { Upload } from "lucide-react"
+import type { SupabaseClient } from "@supabase/supabase-js"
 import {
   HERO_MEDIA_ACCEPT,
   IMAGE_ACCEPT,
@@ -31,6 +32,38 @@ function inferredType(file: File): "image" | "video" {
   return mediaTypeFromSource(file.name)
 }
 
+let browserClient: SupabaseClient | null = null
+
+/**
+ * Lazily creates the browser Supabase client so the SDK is not part of the
+ * initial admin bundle. It uses the publishable/anon key, which is already
+ * public; the signed upload token (not the key) authorizes the write.
+ */
+async function getBrowserClient(): Promise<SupabaseClient> {
+  if (browserClient) return browserClient
+
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim()
+  const key = (
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ??
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
+  )?.trim()
+
+  if (!url || !key) {
+    throw new Error("Supabase is not configured in this environment.")
+  }
+
+  const { createClient } = await import("@supabase/supabase-js")
+  browserClient = createClient(url, key, {
+    auth: {
+      persistSession: false,
+      autoRefreshToken: false,
+      detectSessionInUrl: false,
+    },
+  })
+
+  return browserClient
+}
+
 export default function MediaUploadButton({
   kind,
   label = "Upload",
@@ -44,6 +77,7 @@ export default function MediaUploadButton({
 }) {
   const inputRef = useRef<HTMLInputElement>(null)
   const [pending, setPending] = useState(false)
+  const [stage, setStage] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [status, setStatus] = useState<string | null>(null)
 
@@ -77,13 +111,71 @@ export default function MediaUploadButton({
     }
 
     setPending(true)
+    setStage("Requesting upload…")
     try {
-      const body = new FormData()
-      body.append("file", file)
-      body.append("kind", kind)
+      const ticketResponse = await fetch("/api/admin/uploads", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          kind,
+          name: file.name,
+          mime: file.type,
+          size: file.size,
+        }),
+      })
 
-      const response = await fetch("/api/admin/uploads", { method: "POST", body })
-      const data = (await response.json().catch(() => ({}))) as {
+      const ticket = (await ticketResponse.json().catch(() => ({}))) as {
+        error?: string
+        bucket?: string
+        path?: string
+        token?: string
+        mime?: string
+      }
+
+      if (!ticketResponse.ok) {
+        setError(ticket.error ?? "Upload failed.")
+        return
+      }
+
+      if (
+        typeof ticket.bucket !== "string" ||
+        typeof ticket.path !== "string" ||
+        typeof ticket.token !== "string" ||
+        typeof ticket.mime !== "string"
+      ) {
+        setError("The upload response was invalid.")
+        return
+      }
+
+      const client = await getBrowserClient()
+      setStage("Uploading…")
+
+      const { error: uploadError } = await client.storage
+        .from(ticket.bucket)
+        .uploadToSignedUrl(ticket.path, ticket.token, file, {
+          contentType: ticket.mime,
+          cacheControl: "31536000",
+        })
+
+      if (uploadError) {
+        setError(uploadError.message || "Upload failed.")
+        return
+      }
+
+      setStage("Verifying…")
+      const confirmResponse = await fetch("/api/admin/uploads/confirm", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          kind,
+          path: ticket.path,
+          name: file.name,
+          mime: ticket.mime,
+          size: file.size,
+        }),
+      })
+
+      const data = (await confirmResponse.json().catch(() => ({}))) as {
         error?: string
         url?: string
         type?: "image" | "video"
@@ -92,8 +184,8 @@ export default function MediaUploadButton({
         name?: string
       }
 
-      if (!response.ok) {
-        setError(data.error ?? "Upload failed.")
+      if (!confirmResponse.ok) {
+        setError(data.error ?? "Upload verification failed.")
         return
       }
 
@@ -113,9 +205,14 @@ export default function MediaUploadButton({
         name: typeof data.name === "string" ? data.name : file.name,
       })
       setStatus("Uploaded. Save the form to publish.")
-    } catch {
-      setError("Network error while uploading.")
+    } catch (uploadError) {
+      setError(
+        uploadError instanceof Error && uploadError.message
+          ? uploadError.message
+          : "Network error while uploading.",
+      )
     } finally {
+      setStage(null)
       setPending(false)
     }
   }
@@ -142,7 +239,7 @@ export default function MediaUploadButton({
         className="inline-flex items-center justify-center gap-1.5 rounded-full border border-border bg-white px-3 py-2 text-xs font-semibold text-winter transition-colors hover:bg-ice disabled:opacity-60"
       >
         <Upload className="h-3.5 w-3.5" aria-hidden="true" />
-        {pending ? "Uploading…" : label}
+        {pending ? (stage ?? "Uploading…") : label}
       </button>
       {error && (
         <p role="alert" className="max-w-56 text-xs font-medium text-destructive">

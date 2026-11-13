@@ -45,7 +45,8 @@ returns `503`. There is deliberately no built-in default password.
 | `GET/POST /api/admin/products` | List / create |
 | `GET/PUT/DELETE /api/admin/products/[id]` | Read / update / delete one record |
 | `GET/PUT /api/admin/settings` | Read / update site settings |
-| `POST /api/admin/uploads` | Save a hero or product image/video under `public/uploads/` |
+| `POST /api/admin/uploads` | Issue a signed upload ticket for a hero, poster, or product file |
+| `POST /api/admin/uploads/confirm` | Verify the object in Supabase Storage and return its public URL |
 
 All mutations are validated by the same rules used by `pnpm validate:data`
 (`lib/product-rules.mjs`), so an admin edit cannot silently break store allowlists or
@@ -124,8 +125,8 @@ popup.
 
 - `images` is an optional array of **additional** image sources; the main image is always first.
 - Maximum eight extra images. Duplicate sources (including the main image) are rejected.
-- Each source may be an `https://` URL or a root-relative public path such as
-  `/uploads/products/….jpg`.
+- Each source may be an `https://` URL (including a Supabase Storage public URL) or a
+  root-relative public path such as `/uploads/products/….jpg`.
 - The form accepts paste-in URLs and local uploads. Product cards continue to use only the main
   `image`.
 - Existing products without `images` remain valid and unchanged.
@@ -234,29 +235,40 @@ click **Use … as live** and save. Switching seasons later does not require re-
 
 ### Image uploads
 
-The **Upload** buttons in the Content Manager and product form call
-`POST /api/admin/uploads` with a multipart file and a `kind` of `hero`, `poster`, or `product`.
+The **Upload** buttons in the Content Manager and product form perform a
+three-step upload:
 
-- Hero and poster files save to `public/uploads/hero/`; product images save to
-  `public/uploads/products/`.
-- URLs are returned as `/uploads/hero/…` or `/uploads/products/…` and stored in the
-  `site_settings`/`products` row.
-- `next start` snapshots `public/` at boot, so newly uploaded files would normally 404 until a
-  restart. `app/uploads/[...path]/route.ts` reads `public/uploads/` per request instead, so a
-  fresh upload is served immediately.
-- Uploaded filenames are random UUIDs; the original filename is never used for the path.
-- Images may be JPEG, PNG, WebP, AVIF, or GIF (maximum **8 MB**). Videos may be MP4 or WebM
-  (maximum **25 MB**). SVG is rejected.
-- The server checks the real file signature, not just the browser-supplied MIME type.
-- Uploads use the same admin session, write-enabled, and same-origin checks as other admin
-  writes.
-- Uploading saves the file immediately. The hero or product record is updated when you click
-  **Save content** or **Save changes**.
-- Files are not deleted automatically if you remove a row or abandon a form. Clean up unused
-  files in `public/uploads/` manually.
-- Vercel's filesystem is read-only/ephemeral. Uploads still assume a persistent local disk, so
-  production needs object storage (for example Supabase Storage) even though the catalog lives
-  in the database.
+1. `POST /api/admin/uploads` validates the file metadata and returns a
+   short-lived signed upload token scoped to one object path.
+2. The browser sends the file directly to Supabase Storage with
+   `uploadToSignedUrl`, so Vercel's ~4.5 MB function body limit never applies.
+3. `POST /api/admin/uploads/confirm` verifies the stored object's size and real
+   file signature, deletes it if verification fails, and returns the public
+   URL.
+
+Media is stored in the public Supabase Storage bucket named by
+`SUPABASE_MEDIA_BUCKET` (default `media`):
+
+- Hero files are saved under `hero/`; posters under `hero/poster-…`; product
+  images under `products/`.
+- URLs are absolute and stored in the `site_settings`/`products` row, for
+  example `https://<project>.supabase.co/storage/v1/object/public/media/products/…`.
+- Uploaded filenames are random UUIDs; the original filename is never used for
+  the path.
+- Images may be JPEG, PNG, WebP, AVIF, or GIF (maximum **8 MB**). Videos may be
+  MP4 or WebM (maximum **25 MB**). SVG is rejected.
+- The server checks the real file signature, not just the browser-supplied MIME
+  type. The bucket independently enforces the same MIME allowlist and 25 MB cap.
+- Uploads use the same admin session, write-enabled, and same-origin checks as
+  other admin writes.
+- Uploading saves the object immediately. The hero or product record is updated
+  when you click **Save content** or **Save changes**.
+- Objects are not deleted automatically if you remove a row or abandon a form.
+  Clean up unused files in the Supabase Storage dashboard manually.
+- Supabase Storage is required in development too. There is no local-disk
+  fallback, so local and production behave the same.
+- The legacy `app/uploads/[...path]` route and any existing `/uploads/…` URLs
+  keep working as a permanent fallback.
 
 ### Partner links
 
@@ -309,10 +321,10 @@ stays closed by default even if the code is deployed.
   writes are per row, so edits to different products are independent.
 - The public site reads `site_settings` and `partners`, and the homepage reads `products`, on
   every request, so content, social-link, product, and gallery edits appear without a rebuild.
-- `public/uploads/` assumes a persistent writable disk. Vercel's filesystem is read-only/ephemeral,
-  so uploaded media needs object storage there even though the catalog is in Supabase.
-- The service-role key bypasses RLS. It is only imported by `lib/supabase.ts`, which is marked
-  `server-only`; never expose it with a `NEXT_PUBLIC_` prefix.
+- Uploaded media lives in a public Supabase Storage bucket. Writes are authorized by
+  short-lived signed tokens issued by the server; the bucket has no broad anonymous INSERT
+  policy. The service-role key bypasses RLS. It is only imported by `lib/supabase.ts`, which is
+  marked `server-only`; never expose it with a `NEXT_PUBLIC_` prefix.
 
 ## Product pages and SEO
 
