@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react"
 import { ChevronLeft, ChevronRight } from "lucide-react"
-import { getProductGallery } from "@/lib/product-gallery"
+import { canOptimizeImage, getProductGallery } from "@/lib/product-gallery"
 import type { Product } from "@/lib/products"
 import OptimizedImage from "@/components/ui/OptimizedImage"
 
@@ -74,17 +74,31 @@ export default function ProductGallery({ product }: { product: Product }) {
     <div className="flex flex-col bg-white">
       <div className="relative aspect-square w-full bg-white">
         {current ? (
-          <OptimizedImage
-            key={current}
-            src={current}
-            alt={`${product.brand} ${product.name} — image ${safeIndex + 1} of ${visible.length}`}
-            fill
-            sizes="(max-width: 1024px) 100vw, 50vw"
-            referrerPolicy="no-referrer"
-            className="h-full w-full"
-            imageClassName="h-full w-full object-contain p-6"
-            onError={() => markFailed(current)}
-          />
+          canOptimizeImage(current) ? (
+            <OptimizedImage
+              key={current}
+              src={current}
+              alt={`${product.brand} ${product.name} — image ${safeIndex + 1} of ${visible.length}`}
+              fill
+              sizes="(max-width: 1024px) 100vw, 50vw"
+              referrerPolicy="no-referrer"
+              className="h-full w-full"
+              imageClassName="h-full w-full object-contain p-6"
+              onError={() => markFailed(current)}
+            />
+          ) : (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              key={current}
+              src={current}
+              alt={`${product.brand} ${product.name} — image ${safeIndex + 1} of ${visible.length}`}
+              className="h-full w-full object-contain p-6"
+              loading="lazy"
+              decoding="async"
+              referrerPolicy="no-referrer"
+              onError={() => markFailed(current)}
+            />
+          )
         ) : (
           <div className="flex h-full items-center justify-center bg-ice font-display text-sm tracking-[0.2em] text-winter">
             {product.brand}
@@ -134,16 +148,29 @@ export default function ProductGallery({ product }: { product: Product }) {
                   : "border-border hover:bg-ice"
               }`}
             >
-              <OptimizedImage
-                src={source}
-                alt=""
-                fill
-                sizes="56px"
-                referrerPolicy="no-referrer"
-                className="h-full w-full"
-                imageClassName="h-full w-full object-contain p-1"
-                onError={() => markFailed(source)}
-              />
+              {canOptimizeImage(source) ? (
+                <OptimizedImage
+                  src={source}
+                  alt=""
+                  fill
+                  sizes="56px"
+                  referrerPolicy="no-referrer"
+                  className="h-full w-full"
+                  imageClassName="h-full w-full object-contain p-1"
+                  onError={() => markFailed(source)}
+                />
+              ) : (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={source}
+                  alt=""
+                  className="h-full w-full object-contain p-1"
+                  loading="lazy"
+                  decoding="async"
+                  referrerPolicy="no-referrer"
+                  onError={() => markFailed(source)}
+                />
+              )}
             </button>
           ))}
         </div>
