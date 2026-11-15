@@ -33,12 +33,12 @@ export default async function SiteFooter() {
       <div className="mx-auto max-w-7xl px-6 py-14">
         <div className={`grid gap-10 sm:grid-cols-2 ${gridColumns}`}>
           <div>
-            <Link
+            <a
               href="/#home"
               className="font-display text-xl font-medium tracking-[0.25em] text-midnight"
             >
               FROSTDEW
-            </Link>
+            </a>
             <p className="mt-3 font-display text-lg italic text-winter">
               {content.footer.tagline}
             </p>
@@ -52,9 +52,9 @@ export default async function SiteFooter() {
             <h2 className="text-[0.7rem] font-bold uppercase tracking-[0.2em] text-glacier">Shop</h2>
             <ul className="mt-4 flex flex-col gap-2.5">
               <li>
-                <Link href="/#shop" className={linkClass}>
+                <a href="/#shop" className={linkClass}>
                   All products
-                </Link>
+                </a>
               </li>
               <li>
                 <Link href="/routine-decoder" className={linkClass}>

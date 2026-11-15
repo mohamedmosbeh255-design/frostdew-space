@@ -134,13 +134,13 @@ export default async function ProductPage({ params }: Props) {
         />
 
         <div className="relative mx-auto max-w-6xl px-6 py-10 sm:py-14">
-          <Link
+          <a
             href="/#shop"
             className="inline-flex items-center gap-2 text-sm font-semibold text-primary-600 transition-colors hover:text-primary-700"
           >
             <ArrowLeft className="h-4 w-4" aria-hidden="true" />
             Back to the collection
-          </Link>
+          </a>
 
           <div className="mt-6 grid gap-8 lg:grid-cols-2 lg:items-start">
             <div className="overflow-hidden rounded-3xl border border-border bg-white shadow-sm">

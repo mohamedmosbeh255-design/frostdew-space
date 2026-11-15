@@ -20,13 +20,13 @@ export default function NotFound() {
           The page you were looking for is not here. It may have moved, or the link may be
           incomplete. The collection is still waiting.
         </p>
-        <Link
+        <a
           href="/#shop"
           className="mt-8 inline-flex items-center gap-2 rounded-full bg-amber-cta px-6 py-3 text-sm font-bold text-midnight transition-colors hover:bg-amber-cta/90"
         >
           <ArrowLeft className="h-4 w-4" aria-hidden="true" />
           Back to the shop
-        </Link>
+        </a>
         <p className="mt-6 text-sm text-muted-foreground">
           Need help?{" "}
           <Link href="/contact" className="font-semibold text-winter underline underline-offset-2">

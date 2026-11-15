@@ -13,6 +13,53 @@ const NAV_ITEMS = [
   { href: "/contact", key: "contact" },
 ] as const
 
+/**
+ * Renders one nav target.
+ *
+ * Fragment links must stay plain anchors. The App Router stores a route's
+ * canonical URL including the fragment the page was loaded at, then appends
+ * the next fragment to it: `<Link href="/#shop">` clicked after a full load
+ * at `/#home` produces `/#home#shop`. Plain anchors replace the fragment.
+ * See vercel/next.js#95671.
+ */
+function NavTarget({
+  href,
+  active,
+  className,
+  onClick,
+  children,
+}: {
+  href: string
+  active: boolean
+  className: string
+  onClick?: () => void
+  children: React.ReactNode
+}) {
+  if (href.includes("#")) {
+    return (
+      <a
+        href={href}
+        aria-current={active ? "page" : undefined}
+        className={className}
+        onClick={onClick}
+      >
+        {children}
+      </a>
+    )
+  }
+
+  return (
+    <Link
+      href={href}
+      aria-current={active ? "page" : undefined}
+      className={className}
+      onClick={onClick}
+    >
+      {children}
+    </Link>
+  )
+}
+
 export default function SiteHeader({ solid = false }: { solid?: boolean }) {
   const [scrolled, setScrolled] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
@@ -52,26 +99,26 @@ export default function SiteHeader({ solid = false }: { solid?: boolean }) {
       }`}
     >
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6">
-        <Link
+        <a
           href="/#home"
           className={`font-display text-lg font-medium tracking-[0.22em] transition-colors duration-500 ${
             isSolid ? "text-midnight" : "text-white"
           }`}
         >
           FROSTDEW
-        </Link>
+        </a>
 
         <div className="flex items-center gap-2">
           <nav aria-label={t("nav.primary")} className="hidden items-center gap-1 sm:flex">
             {NAV_ITEMS.map((item) => (
-              <Link
+              <NavTarget
                 key={item.href}
                 href={item.href}
-                aria-current={isActive(item.href) ? "page" : undefined}
+                active={isActive(item.href)}
                 className={chipClass(isActive(item.href))}
               >
                 {t(`nav.${item.key}`)}
-              </Link>
+              </NavTarget>
             ))}
           </nav>
 
@@ -105,11 +152,11 @@ export default function SiteHeader({ solid = false }: { solid?: boolean }) {
         >
           <nav aria-label={t("nav.primary")} className="flex flex-col">
             {NAV_ITEMS.map((item) => (
-              <Link
+              <NavTarget
                 key={item.href}
                 href={item.href}
                 onClick={() => setMenuOpen(false)}
-                aria-current={isActive(item.href) ? "page" : undefined}
+                active={isActive(item.href)}
                 className={`rounded-xl px-3 py-2.5 text-sm font-semibold transition-colors ${
                   isActive(item.href)
                     ? "bg-ice text-winter"
@@ -117,7 +164,7 @@ export default function SiteHeader({ solid = false }: { solid?: boolean }) {
                 }`}
               >
                 {t(`nav.${item.key}`)}
-              </Link>
+              </NavTarget>
             ))}
           </nav>
         </div>
