@@ -12,21 +12,6 @@ export const STORE_LINK_META: Record<StoreLinkKey, { label: string; legacyStore:
   stylevana: { label: "Stylevana", legacyStore: "Stylevana" },
 }
 
-/**
- * Affiliate tags are kept in sync with `lib/product-rules.mjs`. The catalog
- * currently stores US URLs, so the UK link is derived from the same ASIN at
- * runtime to keep the primary CTA on the shopper's local storefront.
- */
-export const AMAZON_AFFILIATE_TAGS = {
-  amazonUs: "beautynest202-20",
-  amazonUk: "beautynestkor-21",
-} as const
-
-const AMAZON_HOST: Record<"amazonUs" | "amazonUk", string> = {
-  amazonUs: "www.amazon.com",
-  amazonUk: "www.amazon.co.uk",
-}
-
 export type ProductStoreLink = {
   key: StoreLinkKey | "legacy"
   label: string
@@ -85,72 +70,28 @@ export function getProductStoreLinks(product: Product): ProductStoreLink[] {
 }
 
 /**
- * Moves the Amazon store that matches the visitor's country to the front so
- * the primary CTA opens the closest storefront. The relative order of the
- * remaining links is preserved.
- */
-export function orderStoreLinksForRegion(
-  links: ProductStoreLink[],
-  preferred: AmazonStore,
-): ProductStoreLink[] {
-  const index = links.findIndex((link) => link.key === preferred)
-  if (index <= 0) return links
-
-  const ordered = [...links]
-  const [first] = ordered.splice(index, 1)
-  ordered.unshift(first)
-  return ordered
-}
-
-/** Pull an ASIN out of a standard Amazon product URL. */
-function extractAmazonAsin(url: string): string | null {
-  try {
-    const parsed = new URL(url)
-    if (!/(^|\.)amazon\./i.test(parsed.hostname)) return null
-    const match = /\/(?:dp|gp\/product)\/([A-Z0-9]{10})(?:[/?]|$)/i.exec(parsed.pathname)
-    return match?.[1]?.toUpperCase() ?? null
-  } catch {
-    return null
-  }
-}
-
-function amazonProductLink(store: "amazonUs" | "amazonUk", asin: string): ProductStoreLink {
-  return {
-    key: store,
-    label: STORE_LINK_META[store].label,
-    url: `https://${AMAZON_HOST[store]}/dp/${asin}?tag=${AMAZON_AFFILIATE_TAGS[store]}`,
-  }
-}
-
-/**
- * Adds the Amazon store that matches the visitor's country when the catalog
- * only stored the other one, then moves it to the front. ASINs are shared by
- * Amazon marketplaces; if a listing is unavailable locally Amazon shows its own
- * fallback page rather than a dead link.
+ * Returns the links explicitly stored in the catalog.
+ *
+ * Amazon US is the canonical primary storefront: links always render in
+ * STORE_LINK_ORDER (US → UK → Stylevana), and geo preference never reorders
+ * them. Marketplace links are never synthesized from an ASIN — an ASIN that
+ * exists on amazon.com can 404 on amazon.co.uk, and a fabricated link is
+ * indistinguishable from a real one in the UI.
+ *
+ * `preferred` is kept for call-site compatibility and is intentionally unused.
  */
 export function getProductStoreLinksForRegion(
   product: Product,
   preferred: AmazonStore,
 ): ProductStoreLink[] {
-  const links = getProductStoreLinks(product)
-  if (links.some((link) => link.key === preferred)) {
-    return orderStoreLinksForRegion(links, preferred)
-  }
-
-  const fallback: AmazonStore = preferred === "amazonUk" ? "amazonUs" : "amazonUk"
-  const source = links.find((link) => link.key === fallback)
-  const asin = source ? extractAmazonAsin(source.url) : null
-  if (asin && !links.some((link) => link.key === preferred)) {
-    links.push(amazonProductLink(preferred, asin))
-  }
-
-  return orderStoreLinksForRegion(links, preferred)
+  void preferred
+  return getProductStoreLinks(product)
 }
 
 /**
  * The CTA used on cards, dialogs and routine suggestions: every available
- * store link, with the visitor's preferred Amazon store first. One button
- * per non-empty link — if a product has three links, three buttons render.
+ * store link in a fixed order (Amazon US first, then Amazon UK, then
+ * Stylevana). One button per non-empty link.
  */
 export function getPrimaryStoreLinks(
   product: Product,
