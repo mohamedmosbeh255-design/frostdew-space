@@ -74,6 +74,7 @@ export const CATEGORIES = [
   { id: "sunscreens", label: "Sunscreens" },
   { id: "cleansers", label: "Cleansers" },
   { id: "lip-care", label: "Lip Care" },
+  { id: "glow-hybrid-makeup", label: "Glow Hybrid Makeup" },
   { id: "sets", label: "Sets" },
 ] as const
 
